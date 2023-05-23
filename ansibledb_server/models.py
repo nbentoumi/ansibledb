@@ -220,19 +220,22 @@ class AnsibleDB():
     @staticmethod
     def auth_ldap_get_user_dn(username):
         user_dn = ""
-        ldap_server = app.config['LDAP_SERVER']
-        base_dn = app.config['LDAP_BASE_DN']
-        object_class = f'(&(objectclass=user)(sAMAccountName={username}))'
-        fid_user = app.config['LDAP_FID_USERNAME']
-        fid_pass = app.config['LDAP_FID_PASSWORD']
-        server = Server(ldap_server, get_info=ALL)
-        connection = Connection(server,user=fid_user,password=fid_pass)
-        if connection.bind():
-            connection.search(base_dn,object_class, attributes=['DistinguishedName'])
-            try:
-                user_dn = str(connection.entries[0]['distinguishedName'])
-            except:
-                user_dn = ""
+        try:
+            ldap_server = app.config['LDAP_SERVER']
+            base_dn = app.config['LDAP_BASE_DN']
+            object_class = f'(&(objectclass=user)(sAMAccountName={username}))'
+            fid_user = app.config['LDAP_FID_USERNAME']
+            fid_pass = app.config['LDAP_FID_PASSWORD']
+            server = Server(ldap_server, get_info=ALL)
+            connection = Connection(server,user=fid_user,password=fid_pass)
+            if connection.bind():
+                connection.search(base_dn,object_class, attributes=['DistinguishedName'])
+                try:
+                    user_dn = str(connection.entries[0]['distinguishedName'])
+                except:
+                    user_dn = ""
+        except:
+            user_dn = ""
 
         return user_dn
 
