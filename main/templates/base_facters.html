@@ -1,0 +1,292 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>AnsibleDB</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='jquery-ui.css') }}">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='searchBuilder.dataTables.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='buttons.dataTables.min.css') }}">
+
+    <!-- DataTables assets -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.1.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.select.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.searchBuilder.min.js') }}"></script>
+
+    <!-- DataTables button -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.print.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.buttons.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jszip.min.js') }}"></script>
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='pdfmake.min.js') }}"></script>-->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='vfs_fonts.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.html5.min.js') }}"></script>
+
+    <!-- auto complete-->
+    <!--<script src="{{ url_for('static', filename='jquery-3.6.0.js') }}"></script>-->
+    <script src="{{ url_for('static', filename='jquery-ui.js') }}"></script>
+   
+    <!-- Chart -->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='chart.js') }}"></script>
+
+    <script>
+      $( function() {
+        var availableTags=[{% if keys !=[]%}{% for key in keys%}'{{key|safe}}',{% endfor%}{% endif%}];
+        $( "#tags" ).autocomplete({
+          source: availableTags
+        });
+      } );
+      function display_host_facters(host){
+        //alert(var_host)
+        var form_detail_host = document.createElement("form");
+        var host_detail = document.createElement("input");
+        form_detail_host.method = "POST";
+        form_detail_host.action = "/server_facters";
+        host_detail.type="hidden";
+        host_detail.name="host_facters";
+        host_detail.value=host;
+        form_detail_host.appendChild(host_detail);
+        document.body.appendChild(form_detail_host);
+        form_detail_host.submit();
+}
+    </script>
+    <script>
+      $('.panel-collapse').on('show.bs.collapse', function () {
+      $(this).siblings('.panel-heading').addClass('active');
+     });
+
+     $('.panel-collapse').on('hide.bs.collapse', function () {
+       $(this).siblings('.panel-heading').removeClass('active');
+     });
+     $('.panel-collapse').collapse({
+             toggle: true
+      })
+    </script>
+    <style type="text/css">
+        .wrapper {
+            width: 94%;
+        }
+ 
+        @media(max-width:992px) {
+            .wrapper {
+                width: 90%;
+            }
+        }
+ 
+        .panel-heading {
+            padding: 0;
+            border: 0;
+        }
+ 
+        .panel-title > a, .panel-title > a:active {
+            display: block;
+            padding: 15px;
+            color: #555;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            word-spacing: 3px;
+            text-decoration: none;
+        }
+ 
+        .panel-heading a:before {
+            font-family: 'Glyphicons Halflings';
+            content: "\e114";
+            float: right;
+            transition: all 0.5s;
+        }
+ 
+        .panel-heading.active a:before {
+            -webkit-transform: rotate(180deg);
+            -moz-transform: rotate(180deg);
+            transform: rotate(180deg);
+        }
+  </style> 
+  </head>
+  <body>
+  <header>
+    <h1>AnsibleDB</h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <!--<span id="menu_button"><a href="/api/docs" title="docs">Api Docs</a></span>-->
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+
+ 
+  <div id="top_div">
+    <h2>Search facters</h2>
+   
+    <div class="ui-widget">
+          <form id="search-form" action="/facters" method="POST">
+            <input type="text" id="tags" name="facter" placeholder="facter" required><span></span><span></span></i>
+            <input type="submit" id="search" value="search">
+
+    </div>
+  </div>
+ 
+
+{% if fact != None and statistique !=[] and statistique|length != result | length  %}
+  <div class="wrapper center-block">
+    <div class="panel panel-default">
+      <div class="panel-heading active" role="tab" id="headingOne">
+      <h4 class="panel-title">
+        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+          Display {{fact}} Chart
+        </a>
+      </h4>
+    </div>
+    <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        <canvas id="facter_chart" style="width:100%;max-width:1200px"></canvas>
+      </div>
+    </div>
+  </div>
+  </div>
+  {%endif%}
+
+  <div id="ansibledb_tbl_div">
+    <div id="ansibledb_tbl_wrapper">
+      <table id="ansibledb_tbl" class="display compact">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>{% if fact != None %}{{fact}} {%else%}Facter{%endif%}</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% block content %}{% endblock %}     
+      </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <footer>
+    <p>Nasredine Bentoumi - 2023</p>
+  </footer>
+
+{% if fact != None and statistique !=[] %}
+<script>
+
+var xValues = [{% if statistique !=[]%}{% for item in statistique%}{%for k in item%}"{{k|safe}}"{%endfor%},{% endfor%}{% endif%}];
+var yValues = [{% if statistique !=[]%}{% for item in statistique%}{%for k in item %}{{item[k]|safe}}{%endfor%},{% endfor%}{% endif%}];
+var len = {% if statistique !=[]%}{{statistique|length}}{%else%}0{% endif%}
+
+let colors = [];
+for(let i = 0; i < len; i++){
+  const randomColor = "#" + Math.floor(Math.random()*16777215).toString(16);
+  //const randomColor = getRandomColor()
+    if (i > 0 && colors.indexOf(randomColor)<0) {
+    colors[i] = randomColor
+    } else if (i > 0 && colors.indexOf(randomColor)>=0) {
+      i=i-1
+    }
+}
+
+
+new Chart("facter_chart", {
+  type: "{% if statistique|length <50 %}pie{%else%}bar{%endif%}",
+  data: {
+    labels: xValues,
+    datasets: [{
+      backgroundColor: colors,
+      data: yValues
+    }]
+  },
+  options: {
+    title: {
+      display: true,
+      text: "{{fact}} chart"
+    }
+  }
+});
+</script>
+{%endif%}
+<script>
+$(document).ready( function () {
+  
+  function getQueryParams(qs) {
+    qs = qs.split('+').join(' ');
+    var params = {},
+      tokens,
+      re = /[?&]?([^=]+)=([^&]*)/g;
+    while (tokens = re.exec(qs)) {
+      params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+    }
+    return params;
+  }
+
+  // Get persisted column visibility from localStorage.
+  var columnVisibility = localStorage.getItem("columnVisibility");
+  if (columnVisibility == null) {
+    columnVisibility = {
+        "name": true,
+        "fact": true,
+        "timestamp": true,
+    };
+    localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+  } else {
+    columnVisibility = JSON.parse(columnVisibility);
+  }
+   
+  // Initialize the DataTables jQuery plugin on the host overview table
+  var table = $('#ansibledb_tbl').DataTable({
+    paging: true,
+    dom: 'QB<l><"clear">frtip',
+    buttons: [ 'csv', 'excel', 'print'],
+    pagingType: 'full_numbers',
+    pageLength: 25,
+    lengthMenu: [ [10, 25, 50,100, -1], [10, 25, 50, 100, "All"] ],
+    columnDefs: [
+        {
+          "targets": [0],
+          "visible": true,
+          "sType": "string"
+        },
+        {
+          "targets": [1],
+          "visible": true,
+          "sType": "string"
+        },
+        {
+          "targets": [2],
+          "visible": true,
+          "sType": "string"
+        },
+    ],
+    "fnInitComplete": function() {
+      // Focus the input field
+      $("#ansibledb_tbl_filter input").focus();
+
+      // Set the search box value to the query string 'search' part
+      var qp = getQueryParams(document.location.search);
+      if ("search" in qp) {
+        $("#ansibledb_tbl_filter input").val(qp.search);
+        this.fnFilter(qp.search);
+      }
+    }
+  });
+
+  
+  // Show a direct link to the search term
+  table.on( 'search.dt', function () {
+    $('#filter_link').remove();
+    if (table.search() == "") {
+    } else {
+      $('#ansibledb_tbl_filter label').after('<span id="filter_link">&nbsp; <a title="Direct link to search" href="?search='+table.search()+'">&nbsp;</a></span>');
+    }
+  } );
+});
+</script>
+
+
+  </body>
+  </html>

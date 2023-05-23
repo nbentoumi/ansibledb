@@ -1,0 +1,248 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>AnsibleDB </title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <!--<link rel=stylesheet type=text/css href="{{ url_for('static', filename='buttons.dataTables.min.css') }}">-->
+    <!--<link rel=stylesheet type=text/css href="{{ url_for('static', filename='jquery.dataTables.min.css') }}">-->
+    <!-- DataTables assets -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.1.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.dataTables.min.js') }}"></script>
+    <!-- DataTables button -->
+
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.print.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.buttons.min.js') }}"></script>
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jszip.min.js') }}"></script>-->
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='pdfmake.min.js') }}"></script>-->
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='vfs_fonts.js') }}"></script>-->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.html5.min.js') }}"></script>
+    <!--choices-->
+    <script src="{{ url_for('static', filename='choices.min.js') }}"></script>
+<script>
+$(document).ready(function(){
+    
+     var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
+        removeItemButton: true,
+        maxItemCount:32,
+        searchResultLimit:32,
+        renderChoiceLimit:32
+      }); 
+     
+     
+ });
+
+function display_selected(){
+
+  let len = $("#choices-multiple-remove-button option:selected").length;
+
+  if (len > 0) {
+    facters=[]
+    $('#choices-multiple-remove-button :selected').each(function(i, selected){ 
+    facters[i] = $(selected).text(); 
+    });
+    //alert(facters);
+    document.getElementById("save_facters_settings").value = facters;
+    document.getElementById("save_facters").submit();
+  } else {
+    document.getElementById("save_facters_settings").value = [];
+    document.getElementById("save_facters").submit();
+
+  } 
+  
+}
+
+
+</script>
+<script>
+  function generateToken() {
+    var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var token = '';
+    for(var i = 0; i < 62; i++) {
+        token += chars[Math.floor(Math.random() * chars.length)];
+    }
+    document.getElementById("token").value = token;
+    return token;
+  } 
+</script>
+  </head>
+  <body>
+  <header>
+    <h1>AnsibleDB {{username}} profile</h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <!--<span id="menu_button"><a href="/api/docs" title="docs">Api Docs</a></span>-->
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+
+<div id="top_div">
+    <h2>&#187; Setup inventory columns</h2>
+  <div class="row d-flex justify-content-center mt-100">
+      <div class="col-md-6">
+      <form id="save_facters" action="/settings" method="POST">
+        <input type="hidden" id="save_facters_settings" name="save_facters_settings" value="">
+        <select id="choices-multiple-remove-button" placeholder="Select facters to display" multiple>
+          {%for key in keys%}
+          <option value={{loop.index}} id="{{loop.index}}" name="{{key}}" {% if key in facters_settings['facters'] %} selected {%endif %}>{{key}}</option>
+          {%endfor%}
+        </select>
+        <input type="button" name="Save Columns" value="Save Columns" onclick="javascript:display_selected();">
+      </form> 
+      </div>
+  </div>
+</div>
+
+<div id="top_div">
+  <!--<hr class="solid">-->
+<h2>&#187; Dashboard reports</li></h2>
+
+<div class="ui-widget">
+  {% if username == 'admin'%}
+  <form id="rotate-form" action="/settings" method="POST">
+    <input type="text" id="rotate_reports" name="rotate_reports"  {%if rotate!="" and rotate!=None %}value="{{rotate}}"{%else%} value=""{%endif%} required size="3" maxlength="3" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');">
+    <input type="submit" id="save" value="Save days to keep reports">
+  </form>
+  <br>
+  {%endif%}
+  <form id="dashboard-reports-form" action="/settings" method="POST">
+    <input type="text" id="dashboard_reports_days" name="dashboard_reports_days"  {%if dashboard_reports_days!="" and dashboard_reports_days!=None %}value="{{dashboard_reports_days}}"{%else%} value="1"{%endif%} required size="3" maxlength="3" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');">
+    <input type="submit" id="save" value="Save dashboard report days">
+  </form>
+</div>
+</div>
+
+<div id="top_div">
+  <!--<hr class="solid">-->
+  <h2>&#187; Tokens</li></h2>
+ 
+  <div class="ui-widget">
+        <form id="search-form" action="/settings" method="POST">
+          <input type="text" id="token" name="token" placeholder="token"  required size="80" {%if token!="" and token!=None %}value="{{token}}"{%else%} value=""{%endif%}><span></span><span></span></i>
+          <input type="button" id="generate_token" name="generate_token" placeholder="generate_token" value="generate token" required onclick="javascript:generateToken()"><span></span><span></span></i>
+          <!--<input id="tags">-->
+          <input type="submit" id="search" value="Save Token">
+        </form>
+
+  </div>
+</div>
+<div id="ansibledb_tbl_div">
+  <div id="ansibledb_tbl_wrapper">
+    {% if result !=[] %}
+    <table id="ansibledb_tbl" class="display compact">
+    <thead>
+      <tr>
+        <th>username</th>
+        <th>token</th>
+        {% if username == 'admin'%}
+        <th>delete</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      
+      {% for token in result %}
+      <tr>
+        <td>{{token['username']}}</td>
+        <td>{{token['token']}}</td>
+        {% if username == 'admin'%}
+        <td>
+          <form name="delete_token" id="delete_token" action="/settings" method="POST"> 
+            <input type=hidden id="user_token_to_delete" name="user_token_to_delete" value="{{token['username']}}" >
+            <input type=hidden id="token_to_delete" name="token_to_delete" value="{{token['token']}}" >
+            <input type="submit" id="delete_token" value="delete token">
+          </form>
+        </td>
+        {% endif %}
+      </tr>  
+      {% endfor %}
+    </tbody>
+    </table>
+    {% endif %}  
+  </div>
+</div>
+
+<footer>
+  <p>Nasredine Bentoumi - 2023</p>
+</footer>
+<script>
+  $(document).ready( function () {
+    
+    function getQueryParams(qs) {
+      qs = qs.split('+').join(' ');
+      var params = {},
+        tokens,
+        re = /[?&]?([^=]+)=([^&]*)/g;
+      while (tokens = re.exec(qs)) {
+        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+      }
+      return params;
+    }
+  
+    // Get persisted column visibility from localStorage.
+    var columnVisibility = localStorage.getItem("columnVisibility");
+    if (columnVisibility == null) {
+      columnVisibility = {
+          "username": true,
+          "token": true,
+          {% if username == 'admin'%}
+          "delete": true,
+          {% endif%}
+      };
+      localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+    } else {
+      columnVisibility = JSON.parse(columnVisibility);
+    }
+     
+    // Initialize the DataTables jQuery plugin on the host overview table
+    var table = $('#ansibledb_tbl').DataTable({
+      paging: true,
+      pagingType: 'full_numbers',
+      pageLength: 25,
+      lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+      columnDefs: [
+          {
+            "targets": [0],
+            "visible": true,
+            "sType": "string"
+          },
+          {
+            "targets": [1],
+            "visible": true,
+            "sType": "string"
+          },
+          {% if username == 'admin'%}
+          {
+            "targets": [2],
+            "visible": true,
+            "sType": "string"
+          },
+          {% endif%}
+      ],
+      "fnInitComplete": function() {
+        // Focus the input field
+        $("#ansibledb_tbl_filter input").focus();
+  
+        // Set the search box value to the query string 'search' part
+        var qp = getQueryParams(document.location.search);
+        if ("search" in qp) {
+          $("#ansibledb_tbl_filter input").val(qp.search);
+          this.fnFilter(qp.search);
+        }
+      }
+    });
+    
+    // Show a direct link to the search term
+    table.on( 'search.dt', function () {
+      $('#filter_link').remove();
+      if (table.search() == "") {
+      } else {
+        $('#ansibledb_tbl_filter label').after('<span id="filter_link">&nbsp; <a title="Direct link to search" href="?search='+table.search()+'">&nbsp;</a></span>');
+      }
+    } );
+  });
+  </script>
+</body>
+</html>

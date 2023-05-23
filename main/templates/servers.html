@@ -1,0 +1,24 @@
+{% extends 'base_servers.html' %}
+{% block content %}
+{% if result !=[] %}
+{% for fact in result %}
+<tr>
+  {%for key in facters_list%}
+  <td>
+    {%if key == "default_ipv4" and  "default_ipv4" in fact['ansible_facts'].keys() and 'address' in fact['ansible_facts']['default_ipv4'].keys() %}
+        {{ fact['ansible_facts']['default_ipv4']['address']|safe }}
+    {%elif key == "processor" %}
+        {{ fact['ansible_facts']['processor'][2] }}
+    {%elif fact['ansible_facts'][key] is iterable and (fact['ansible_facts'][key] is not string and fact['ansible_facts'][key] is not mapping) %}
+        {{ fact['ansible_facts'][key]|join(' <br> ')|safe }}
+    {%elif key == "hostname" %}
+        <a id="{%print fact['ansible_facts'][key]%}" href="#" onclick="display_host_facters('{%print fact['''ansible_facts'''][key]%}');return false;">{{ fact['ansible_facts'][key]|safe }}</a>
+    {%else%}
+        {{ fact['ansible_facts'][key]|safe }}
+    {%endif%}
+  </td>
+  {%endfor%}
+</tr>
+{% endfor %}
+{% endif %}
+{% endblock %}

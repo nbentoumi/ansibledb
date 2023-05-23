@@ -1,0 +1,82 @@
+securityDefinitions:
+   APIKeyHeader:
+     type: apiKey
+     in: header
+     name: token
+definitions:
+  Get Hosts and Facters:
+    properties:
+      hostname:
+        type: string
+      facter:
+        type: string
+    type: object
+  Get Facters:
+    properties:
+      fact:
+        type: string
+    type: object
+  Delete hosts:
+    properties:
+      hostname:
+        type: string
+    type: object
+info:
+  contact:
+    email: nasredine.bentoumi@gmail.com
+    name: AnsibleDB
+  description: AnsibleDB is Flask API server uses MongoDB as Database to store Ansible reports and ansible facts, this tool can be used to query hosts and facters managed Ansible as well search ansible logs.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: AnsibleDB
+  version: "1.0"
+
+security:
+  - APIKeyHeader: []
+paths:
+  /api/servers:
+    get:
+      consumes:
+      - application/json
+      operationId: get servers and facters
+      parameters:
+      - description: Hostname
+        in: query
+        name: host
+        required: false
+        type: string
+      - description: Facter
+        in: query
+        name: fact
+        required: false
+        type: string
+      responses: {}
+      summary: Get Servers and Facters
+  /api/facters/{fact}:
+    get:
+      consumes:
+      - application/json
+      operationId: get facters
+      parameters:
+      - description: Facter
+        in: path
+        name: fact
+        required: true
+        type: string
+      responses: {}
+      summary: Get Facters
+  /api/servers/{host}/delete:
+    delete:
+      consumes:
+      - application/json
+      operationId: Delete host
+      parameters:
+      - description: Hostname
+        in: path
+        name: host
+        required: true
+        type: string
+      responses: {}
+      summary: Get status
+swagger: "2.0"

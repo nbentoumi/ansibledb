@@ -1,0 +1,415 @@
+   /** @define DashboardCounts */
+   .DashboardCounts {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 10;
+    margin-top: 40;
+  }
+  .DashboardCounts-buttonStyle {
+    text-align: center;
+    padding: 8px;
+    padding-bottom: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    border: 1px solid #B7B7B7;
+    flex: 1 0 auto;
+    max-width: calc(12.6% - 25px);
+    flex-basis: calc(12.6% - 25px);
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .DashboardCounts-buttonStyle:hover {
+    background-color: #337AB7;
+    border-color: #337AB7;
+  }
+  .DashboardCounts-buttonStyle:hover .DashboardCounts-number,
+  .DashboardCounts-buttonStyle:hover .DashboardCounts-label {
+    color: #FFFFFF;
+  }
+  .DashboardCounts-buttonStyle.is-failure:hover {
+    background-color: #D9534F;
+    border-color: #D9534F;
+  }
+  .DashboardCounts-buttonStyle.is-failure:hover .DashboardCounts-number,
+  .DashboardCounts-buttonStyle.is-failure:hover .DashboardCounts-label {
+    color: #FFFFFF;
+  }
+  .DashboardCounts-number {
+    font-size: 30px;
+    line-height: 26px;
+    flex: 1;
+    transition: color 0.2s;
+  }
+  .DashboardCounts-number.is-failure {
+    color: #D9534F;
+  }
+  .DashboardCounts-label {
+    flex: 1;
+    margin-bottom: 0px;
+    margin-top: 0.625rem;
+    color: #606060;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    font-size: 0.75rem;
+  }
+  @media only screen and (max-width: 110px) {
+    .DashboardCounts {
+      margin-bottom: -15px;
+    }
+    .DashboardCounts-buttonStyle {
+      margin-bottom: 7px;
+      width: 7%;
+      flex-basis: calc(13% - 7px);
+      max-width: calc(13% - 7px);
+      height: 16px;
+    }
+  }
+  @media only screen and (max-width: 160px) {
+    .DashboardCounts-label {
+      font-size: 10px;
+    }
+  }
+  
+  /** @define DashboardGraphs */
+  
+  .DashboardGraphs {
+    margin-top: 20px;
+    border: solid 1px #B7B7B7;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .DashboardGraphs-headerSection {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .DashboardGraphs-headerText {
+    flex: 1;
+    margin: 0px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #606060;
+    white-space: nowrap;
+    margin-right: auto;
+  }
+  .DashboardGraphs-graphSection {
+    display: block;
+    flex: 1;
+  }
+  .DashboardGraphs-graphContainer {
+    width: 0%;
+    display: none;
+  }
+  .DashboardGraphs-graphContainer.is-selected {
+    width: 100%;
+    display: block;
+  }
+  .DashboardGraphs-filterLabelIcon {
+    color: #646972;
+    font-size: 14px;
+    padding-top: 5px;
+  }
+  .DashboardGraphs-filterLabel {
+    color: #606060;
+    font-size: 10px;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+    height: 20px;
+  }
+  .DashboardGraphs-filterLabel > span {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 20px;
+  }
+  .DashboardGraphs-graph {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .DashboardGraphs-graphToolbar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .DashboardGraphs-filterDropdownText,
+  .DashboardGraphs-filterDropdownText:hover,
+  .DashboardGraphs-filterDropdownText:focus,
+  .DashboardGraphs-filterDropdownText:active {
+    color: #161B1F;
+  }
+  .DashboardGraphs-filterDropdownText {
+    align-items: center;
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    border: 1px solid #B7B7B7;
+    display: inline-flex;
+    font-size: 10px;
+    height: 20px;
+    justify-content: space-between;
+    padding: 0 10px;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+    width: 100%;
+  }
+  .DashboardGraphs-filterDropdownText > span {
+    width: 100%;
+  }
+  .DashboardGraphs-filterDropdownText:hover {
+    background-color: #FAFAFA;
+  }
+  .DashboardGraphs-filterIcon {
+    color: #646972;
+    font-size: 12px;
+    width: 20px;
+    padding: 0 10px;
+    float: right;
+    margin-top: 1px;
+  }
+  .DashboardGraphs-filterDropdownItems {
+    position: absolute;
+    left: auto;
+    top: auto;
+    box-shadow: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-color: #D7D7D7;
+    min-width: 115px;
+  }
+  .DashboardGraphs-filterDropdownItems a:not([href]):not([tabindex]) {
+    color: #606060;
+  }
+  .DashboardGraphs-filterDropdownItems a > span {
+    float: none;
+  }
+  .DashboardGraphs-filterDropdownItems > li {
+    font-size: 10px;
+  }
+  .DashboardGraphs-periodDropdown,
+  .DashboardGraphs-jobTypeDropdown,
+  .DashboardGraphs-statusDropdown {
+    font-size: 10px;
+    display: inline-block;
+    padding-top: 0px;
+    min-width: 115px;
+    width: inherit;
+  }
+  .DashboardGraphs-statusFilters {
+    padding-top: 5px;
+  }
+  .DashboardGraphs-statusFilter {
+    color: #606060;
+    background-color: #FFFFFF;
+    font-size: 12px;
+    text-transform: uppercase;
+    padding-right: 10px;
+    padding-left: 10px;
+    height: 20px;
+    border: 1px solid #B7B7B7;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+    margin-left: 10px;
+    line-height: 1;
+  }
+  .DashboardGraphs-statusFilter:hover {
+    cursor: pointer;
+    background-color: #f2f2f2;
+  }
+  .DashboardGraphs-statusFilter.is-selected {
+    color: #FFFFFF;
+    background-color: #D7D7D7;
+    border-color: #D7D7D7;
+  }
+  .DashboardGraphs-statusFilterIcon {
+    padding-right: 5px;
+  }
+  .DashboardGraphs-filteringDropdowns {
+    display: inherit;
+    margin-left: 10px;
+  }
+  .DashboardGraphs-filterDropdownItems li > a {
+    text-align: left;
+    color: #606060;
+  }
+  @media only screen and (max-width: 800px) {
+    .DashboardGraphs-graphToolbar {
+      width: 100%;
+      margin-right: 0px;
+    }
+    .DashboardGraphs-filterDropdownItems {
+      left: 50%;
+      right: 35px;
+    }
+    .DashboardGraphs-filteringDropdowns {
+      float: left;
+      width: 100%;
+      margin-left: 0;
+    }
+    .DashboardGraphs-filterLabel {
+      margin-top: 10px;
+      width: 50%;
+      float: left;
+      padding-left: 0;
+    }
+    .DashboardGraphs-periodDropdown,
+    .DashboardGraphs-jobTypeDropdown,
+    .DashboardGraphs-statusDropdown {
+      margin-top: 10px;
+      width: 50%;
+      float: left;
+    }
+  }
+   
+  /* test */
+  #dashbaord-div {
+    margin-top: 20px;
+    border: solid 1px #B7B7B7;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .dashbaord-label {
+    color: #606060;
+    font-size: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    text-transform: uppercase;
+    display: inline-block;
+    vertical-align: middle;
+    height: 20px;
+  }
+  /**/
+  .selectstyle--style3 {
+    --selectsize:2rem;
+    --uibordercolor:#c00;
+    --uibackground:#f8f8f8;
+    --uiborderradiusfactor:0.3;
+    --uihovercolor:#600;
+    --uireversecolor:#ffc;
+    --unicodepointer:"\25bd";
+  }
+  .selectstyle__box {
+    margin:0 auto;
+    width:auto;
+    height:auto;
+    text-align:center;
+    overflow:visible;
+    position: relative;
+    display:inline-block;
+    font-size:calc(var(--selectsize) * 0.5);
+  }
+  
+  .selectstyle__label {
+    font-size:calc(var(--selectsize) * 0.5);
+    position: relative;
+    display: inline-block;
+    margin:0 calc(var(--selectsize) * 0.5) 0 0;
+    white-space:nowrap;
+  }
+  /*  status */
+  
+  .container_status {
+      display:flex;
+  }
+  .status_ok {
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #28a745;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_changed {
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #fd7e14;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_failures {
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #dc3545;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_unreachable {
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #6c757d;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_skipped{
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #007bff;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_rescued{
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #e83e8c;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  .status_ignored{
+    border-radius: 20%;
+    width: 32px;
+    height: 15px;
+    padding: 1px;
+    background: #17a2b8;
+    border: 1px solid #000;
+    color: #fff;
+    text-align: center;
+    font: 15px Arial, sans-serif;
+  }
+  
+  hr.solid {
+    border-top: 1px solid #bbb;
+  }
+  #div_top { margin: 5px; margin-top: 80px; }
+  
+  /*context menu*/
+  div.container {
+    min-width: 980px;
+    margin: 0 auto;
+    padding: 10px;
+  }

@@ -1,0 +1,35 @@
+{% extends 'base_facters.html' %}
+{% block content %}
+{% if result !=[] %}
+{% for fact in result %}
+<tr>
+  <td><a id="{%print fact['hostname']%}" href="#" onclick="display_host_facters('{%print fact['''hostname''']%}');return false;">{{ fact['hostname']|safe }}</a></td>
+  <td>
+    {% if fact['facter'] is mapping and fact['facter']|length> 1 %}
+      {% for key in fact['facter'] %}
+        {%if 'dm-' not in key and 'loop' not in key and 'sr0' not in key and 'nbd' not in key and 'ram' not in key%}
+          <b>{% print(key) %}:</b>
+          <!-- test if it is another dict-->
+          {% if fact['facter'][key] is iterable and (fact['facter'][key] is not string and fact['facter'][key] is not mapping)%}
+            {{ fact['facter'][key] |join(' , ')|safe }}
+          {% elif fact['facter'][key] is mapping %}
+              {%for k in fact['facter'][key].keys()%}
+              &nbsp;&nbsp;{%print (k)%}:
+              &nbsp;&nbsp;&nbsp;&nbsp;{%print(fact['facter'][key][k])%}
+              {%endfor%}<br>
+            <!--['scheduler_mode', 'rotational', 'vendor', 'sectors', 'links', 'sas_device_handle', 'sas_address', 'virtual', 'host', 'sectorsize', 'removable', 'support_discard', 'model', 'partitions', 'holders', 'size']--> 
+          {% else %}
+            {% print(fact['facter'][key]) %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {%elif fact['facter'] is iterable and (fact['facter'] is not string and fact['facter'] is not mapping) %}
+      {{ fact['facter'] |join('<br>')|safe }}
+    {% else %}
+      {{ fact['facter'] |safe }}
+    {% endif %}</td>
+  <td>{{ fact['timestamp'] }}</td>
+</tr>
+{% endfor %}
+{% endif %}
+{% endblock %}

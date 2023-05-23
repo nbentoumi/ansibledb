@@ -1,0 +1,7 @@
+pymongo
+Flask
+python-dotenv
+gunicorn
+flask_swagger_ui
+flask_restx
+ldap3

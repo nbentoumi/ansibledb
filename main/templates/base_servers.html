@@ -1,0 +1,283 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>AnsibleDB</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='buttons.dataTables.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='jquery.dataTables.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='searchBuilder.dataTables.min.css') }}">
+    <!-- DataTables assets -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.1.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.select.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.searchBuilder.min.js') }}"></script>
+  
+    <!-- DataTables button -->
+
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.print.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.buttons.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jszip.min.js') }}"></script>
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='pdfmake.min.js') }}"></script>-->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='vfs_fonts.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.html5.min.js') }}"></script>
+    
+    <!--choices-->
+    <script src="{{ url_for('static', filename='choices.min.js') }}"></script>
+    <!-- context menu-->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='jquery.contextMenu.css') }}">
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.contextMenu.js') }}"></script>
+
+<script>
+$(document).ready(function(){
+    
+     var multipleCancelButton = new Choices('#choices-multiple-remove-button', {
+        removeItemButton: true,
+        maxItemCount:32,
+        searchResultLimit:32,
+        renderChoiceLimit:32
+      }); 
+     
+     
+ });
+
+function display_host_facters(host){
+  //alert(var_host)
+  var form_detail_host = document.createElement("form");
+  var host_detail = document.createElement("input"); 
+  form_detail_host.method = "POST";
+  form_detail_host.action = "/server_facters";
+  host_detail.type="hidden";
+  host_detail.name="host_facters";
+  host_detail.value=host;
+  form_detail_host.appendChild(host_detail);
+  document.body.appendChild(form_detail_host);
+  form_detail_host.submit();
+}
+
+
+
+</script>
+  </head>
+  <body>
+
+
+  <header>
+    <h1>AnsibleDB</h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <!--<span id="menu_button"><a href="/api/docs" title="docs">Api Docs</a></span>-->
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+
+
+  <div id="top_div">
+    <h2>Add or remove columns</h2>
+   
+
+<div class="row d-flex justify-content-center mt-100">
+
+        <div class="col-md-6"> <select id="choices-multiple-remove-button" placeholder="Select facters to display" multiple>
+          {%for key in facters_list%}
+          <option value={{loop.index-1}} id="{{loop.index-1}}" name="{{key}}" {% if key in facters_list %} selected {%endif %}>{{key}}</option>
+          {%endfor%}
+
+      </select> </div>
+</div>
+  </div>
+
+
+  <div id="ansibledb_tbl_div">
+    <div id="ansibledb_tbl_wrapper">
+      <table id="ansibledb_tbl" class="display compact">
+      <thead>
+        <tr>
+          {%for fact in facters_list%}
+          <th>{{fact}}</th>
+          {%endfor%}
+        </tr>
+      </thead>
+      <tbody>
+      {% block content %}{% endblock %}     
+      </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <footer>
+    <p>Nasredine Bentoumi - 2023</p>
+  </footer>
+
+
+<script>
+$(document).ready( function () {
+  
+  function getQueryParams(qs) {
+    qs = qs.split('+').join(' ');
+    var params = {},
+      tokens,
+      re = /[?&]?([^=]+)=([^&]*)/g;
+    while (tokens = re.exec(qs)) {
+      params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+    }
+    return params;
+  }
+
+  // Get persisted column visibility from localStorage.
+  var columnVisibility = localStorage.getItem("columnVisibility");
+  if (columnVisibility == null) {
+    columnVisibility = { {% for fact in facters_list %} '{{fact}}': true, {% endfor %}
+    };
+    localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+  } else {
+    columnVisibility = JSON.parse(columnVisibility);
+  }
+
+  // Initialize the DataTables jQuery plugin on the host overview table
+  var table = $('#ansibledb_tbl').DataTable({
+    paging: true,
+    pageLength: 25,
+    pagingType: 'full_numbers',
+    lengthMenu: [ [10, 25, 50,100, -1], [10, 25, 50, 100, "All"] ],
+    //dom: 'lpBrftrip',
+    //dom: 'Blfrtip',
+    //dom: "fr<QBl>tip",
+    dom: 'QB<l><"clear">frtip',
+    //select: true,
+    //sDom: '<"top"QB>frl<"clear">t<"bottom"ip>',
+    buttons: [ 'copy', 'csv', 'excel', 'print', 'colvis' ],
+    columnDefs: [
+    {% for fact in facters_list %}
+        { "name": '{{fact}}',
+          "targets": [{{loop.index-1}}],
+          "visible": true,
+          "sType": "string"
+        },
+    {% endfor %}
+    
+    ],
+    "fnInitComplete": function() {
+      // Focus the input field
+      $("#ansibledb_tbl_filter input").focus();
+
+      // Set the search box value to the query string 'search' part
+      var qp = getQueryParams(document.location.search);
+      if ("search" in qp) {
+        $("#ansibledb_tbl_filter input").val(qp.search);
+        this.fnFilter(qp.search);
+      }
+    }
+  });
+
+  $.contextMenu({
+  selector: 'tr', 
+  trigger: 'right',
+  callback: function(key, options) {
+    var row = table.row(options.$trigger)
+    var idx = table.column( 'hostname:name' ).index()
+    switch (key) {
+      case 'delete' :
+        if (typeof idx !== "undefined") {
+          //row.remove().draw()
+          var str = row.data()[idx]
+          var host = str.substring(str.indexOf(">") + 1, str.lastIndexOf("<"));
+          var form_delete_host = document.createElement("form");
+          var host_delete = document.createElement("input"); 
+          form_delete_host.method = "POST";
+          form_delete_host.action = "/inventory";
+          host_delete.type="hidden";
+          host_delete.name="host_delete";
+          host_delete.value=host;
+          form_delete_host.appendChild(host_delete);
+          document.body.appendChild(form_delete_host);
+          form_delete_host.submit();
+          //alert(host)
+        }
+        break;
+      default :
+        break
+    } 
+  },
+  items: {
+    "delete": {name: "Delete server"},
+  }
+}) 
+
+  
+  // Show a direct link to the search term
+  table.on( 'search.dt', function () {
+    $('#filter_link').remove();
+    if (table.search() == "") {
+    } else {
+      $('#ansibledb_tbl_filter label').after('<span id="filter_link">&nbsp; <a title="Direct link to search" href="?search='+table.search()+'">&nbsp;</a></span>');
+    }
+  } );
+
+
+  
+
+ // show or hide columns
+  let selected_text = $("#choices-multiple-remove-button option:selected").text();
+  let selected_val = $("#choices-multiple-remove-button").val();
+  let len = $("#choices-multiple-remove-button option:selected").length;
+  $('#choices-multiple-remove-button').change(function() {
+    let prevSelection_text = selected_text
+    let prevSelection_val = selected_val
+    let len_prev = len
+
+    len=$("#choices-multiple-remove-button option:selected").length
+    selected_text = $(this).find('option:selected').text();
+    selected_val = $("#choices-multiple-remove-button").val();
+    
+   
+    if ((len_prev>len) && (len>0)) {
+      var option_removed_text=prevSelection_text.replace(selected_text,"")
+      var arr1=Object.values(selected_val);
+      var arr2=Object.values(prevSelection_val);
+      let option_removed_val= arr2.filter(x => !arr1.includes(x));
+      var columnId = option_removed_text
+      var column = table.column( option_removed_val );
+    
+      column.visible( false );
+      var newClass = ['col-invisible','col-visible'][Number(column.visible())];
+      columnVisibility[columnId] = column.visible();
+      localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility)); 
+
+    }
+    else if ((len_prev<len) && (len>0)) {
+
+      var option_added_text=selected_text.replace(prevSelection_text,"")
+      var arr1=Object.values(selected_val);
+      var arr2=Object.values(prevSelection_val);
+      
+      let option_added_val= arr1.filter(x => !arr2.includes(x));
+      var columnId = option_added_text
+      var column = table.column( option_added_val );
+      
+      column.visible( true );
+      var newClass = ['col-invisible','col-visible'][Number(column.visible())];
+      columnVisibility[columnId] = column.visible();
+      localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+    }
+    else if (len==0) {
+      localStorage.clear('columnVisibility'); location.reload();
+      
+
+    }
+     
+  });
+ 
+
+  
+  
+});
+
+</script>
+
+
+  </body>
+  </html>

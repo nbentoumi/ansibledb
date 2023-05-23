@@ -1,0 +1,346 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>AnsibleDB</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <!-- DataTables assets -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.1.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.dataTables.min.js') }}"></script>
+    <!-- DataTables button -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard.css') }}" />
+    <style>
+      #col_datatable { margin: 32px; margin-top: 100px; }
+      #col_datatable h2 { display: block; font-size: 1.4em; margin-bottom: 32px; color: #606060; }
+      #col_datatable_buttons { margin-left: 32px; font-weight: normal; line-height: 40px; }
+      #col_datatable a { line-height: 40px; }
+      #col_datatable a { display: inline-block; line-height: 32px; padding: 0px 15px 0px 15px; margin-right: 6px; color: #FFFFFF; }
+      #col_datatable a.col-invisible { background-color: #B0B0B0; box-shadow: 0 0px 0px 0; }
+    </style>
+    <script>
+      function delete_host(host){
+          var form_delete_host = document.createElement("form");
+          var host_delete = document.createElement("input"); 
+          form_delete_host.method = "POST";
+          form_delete_host.action = "/";
+          host_delete.type="hidden";
+          host_delete.name="host_delete";
+          host_delete.value=host;
+          form_delete_host.appendChild(host_delete);
+          document.body.appendChild(form_delete_host);
+          form_delete_host.submit();
+}
+    </script>
+  </head>
+  <body>
+
+
+  <header>
+    <h1>AnsibleDB </h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <!--<span id="menu_button"><a href="/api/docs" title="docs">Api Docs</a></span>-->
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+  
+  
+  <div id="col_datatable">
+
+  <table >
+    <tr>
+      <td>
+         <h2>hostname:</h2>
+      </td>
+      <td>
+        <h2>&nbsp;{{hostname}}</h2>
+     </td>
+    </tr>
+    <tr>
+      <td>
+        <h2>Report Time:</h2>
+      </td>
+      <td>
+        <h2>&nbsp;{{report_time}}</h2>
+     </td>
+    </tr>
+      <td>
+        <h2> status:</h2>
+      </td>
+      <td><h2>
+        <div class="container_status">
+          <a href="javascript:filter_status('all')"><div class="status_ok">all</div>
+          {% if status['ok']!=0%}<a href="javascript:filter_status('status_ok')"><div class="status_ok">{{ status['ok']}}</div>{%endif%} 
+          {% if status['failed']!=0%}<a href="javascript:filter_status('status_failed')"><div class="status_failures">{{ status['failed']}}</div></a>{%endif%}  
+          {% if status['unreachable']!=0%}<a href="javascript:filter_status('status_unreachable')"><div class="status_unreachable">{{ status['unreachable']}}</div></a>{%endif%}  
+          {% if status['changed']!=0%}<a href="javascript:filter_status('status_changed')"><div class="status_changed"> {{ status['changed']}}</div></a>{%endif%} 
+          {% if status['skipped']!=0%}<div class="status_skipped">{{ status['skipped']}}</div>{%endif%} 
+          {% if status['rescued']!=0%}<div class="status_rescued">{{ status['rescued']}}</div>{%endif%} 
+          {% if status['ignored']!=0%}<div class="status_ignored"> {{ status['ignored']}}</div>{%endif%}  
+      </div>
+    </h2>
+      </td>
+    </tr>
+  </table>
+  
+</div> 
+
+
+  
+  <div id="ansibledb_tbl_div">
+    <div id="ansibledb_tbl_wrapper">
+      <table id="ansibledb_tbl" class="display compact">
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>ansible_log</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%for log in result%}
+            {%if 'changed' in log['message'].keys() and log['message']['changed'] == True %}
+              {%set color='#ffc107'%}
+              {%set div='<div hidden>status_changed</div>'%}
+            {%elif 'failed' in log['message'].keys() and log['message']['failed'] == True %}
+              {%set color='#dc3545'%}
+              {%set div='<div hidden>status_failed</div>'%}
+            {% else %}
+              {%set color='#606060'%}
+              {%set div='<div hidden>status_ok</div>'%}
+        {% endif %}
+            <tr>
+              <!--style="color: {%print(color)%};"-->
+              <td style="color: {%print(color)%};">
+                {{log['task']}}
+
+              </td>
+              <td {%if 'failed' in log['message'].keys() and log['message']['failed'] == True%}style="color: {%print(color)%};"{%endif%}> 
+                {{div | safe}}
+                {%for key in log['message'].keys()%}
+                    {%if key !='result1s' and key!='invocation' %}
+                        
+                        {%if key == 'diff' and log['message']['changed'] == True %}
+                            
+                            <!--{%if log['message']['diff'] is iterable and log['message']['diff']|length== 1%}
+                                <b>{{key}}</b>: <p style="color: #c00;font: size 10px;">-{{log['message']['diff'][0]['before']|replace('\n','<br>')|safe}}</p><p style="color: #28a745;font: size 10px;">+{{log['message']['diff'][0]['after']|replace('\n','<br>')|safe}}</p>
+                            {%else%}    
+                                <b>{{key}}</b>: <p style="color: #c00;font: size 10px;">-{{log['message']['diff']['before']|replace('\n','<br>')|safe}}</p><p style="color: #28a745;font: size 10px;">+{{log['message']['diff']['after']|replace('\n','<br>')|safe}}</p>
+                            {%endif%}-->
+                            {%if log['message']['diff'] is string%}
+                            {%- set diff_file = log['message']['diff'].split('\n') -%}
+                            <b>{{key}}</b>:<br>
+                             {%-for df in diff_file -%}
+                               {%- if df.startswith('-') -%} 
+                                 <p style="color: #c00;font: size 10px;">{{df|safe}}</p>
+                               {%- elif df.startswith('+') -%} 
+                                 <p style="color: #28a745;font: size 10px;">{{df|safe}}</p>
+                               {%- else -%}
+                                 {{df|safe}}<br> 
+                               {%-endif-%}
+                             {%endfor%}<br>
+                            {%else%}
+                              {{key}}</b>:{{log['message']['diff'] | replace('\n','<br>')|safe}}
+                            {%endif%}
+                        {%elif key == 'status' and log['message']['changed'] == True %}
+                            {%- set diff_status = log['message']['status'] -%}                                                                                                          
+                            <b>{{key}}</b>:<br>                                                                                                                                                 
+                             {%-for ds in diff_status -%}                                                                                                                                         
+                               {%- if ds.startswith('-') -%}                                                                                                                                    
+                                 <p style="color: #c00;font: size 10px;">{{ds|safe}}</p>                                                                                                        
+                               {%- elif ds.startswith('+') -%}                                                                                                                                  
+                                 <p style="color: #28a745;font: size 10px;">{{ds|safe}}</p>                                                                                                     
+                               {%- else -%}                                                                                                                                                     
+                                 {{ds|safe}}<br>                                                                                                                                                
+                               {%-endif-%}                                                                                                                                                      
+                             {%endfor%}<br>
+                        {%elif key == 'results' and  log['message']['results']|length >0%}
+                            {%for res in log['message']['results']%}
+                                {%if res['changed'] == True and 'diff' in res.keys()%}
+                                   <b>{{key}} {{loop.index-1}}</b>: <br>&nbsp;<p {%if res['changed'] == True %}style="color: #c00; font: size 10px;"{%endif%}>-{{res['diff']['before_header']}}<br>-{{res['diff']['before']}}</p><br><p {%if res['changed'] == True %}style="color:#28a745; font: size 10px;"{%endif%}>+{{res['diff']['after_header']}}<br>+{{res['diff']['after']|safe}}<br></p>
+                                {%elif res['changed'] == True%}
+                                <p style="color: #28a745;font: size 10px;">
+                                  {{res['_ansible_item_label']}}<br>
+                                  {{res['item']}}
+                                </p>
+                                {% endif %}
+                            {%endfor%}
+                        {%else%}
+                            <b>{{key}}</b>: {{log['message'][key]}}<br>
+                        {%endif%}
+                    {%endif%}
+                {%endfor%}
+              </td>
+            </tr>
+        {%endfor%}
+      </tbody>
+      </table>
+    </div>
+  </div>
+ 
+
+  <footer>
+    <p>Nasredine Bentoumi - 2023</p>
+  </footer>
+
+
+<script>
+$(document).ready( function () {
+  
+  function getQueryParams(qs) {
+    qs = qs.split('+').join(' ');
+    var params = {},
+      tokens,
+      re = /[?&]?([^=]+)=([^&]*)/g;
+    while (tokens = re.exec(qs)) {
+      params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+    }
+    return params;
+  }
+
+  // Get persisted column visibility from localStorage.
+  var columnVisibility = localStorage.getItem("columnVisibility");
+  if (columnVisibility == null) {
+    columnVisibility = { {% for fact in facters_list %} '{{fact}}': true, {% endfor %}
+    };
+    localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+  } else {
+    columnVisibility = JSON.parse(columnVisibility);
+  }
+
+  // Initialize the DataTables jQuery plugin on the host overview table
+  var table = $('#ansibledb_tbl').DataTable({
+    paging: true,
+    pageLength: -1,
+    pagingType: 'full_numbers',
+    lengthMenu: [ [10, 25, 50,100, -1], [10, 25, 50, 100, "All"] ],
+    //dom: '<B>lfrtip',
+    //buttons: [
+    //    'csv', 'excel',
+    //   ],
+    columnDefs: [
+    
+        { "name": 'task',
+          "targets": [0],
+          "visible": true,
+          "sType": "string"
+        },
+        { "name": 'log',
+          "targets": [1],
+          "visible": true,
+          "sType": "string"
+        }, 
+    
+    ],
+    "fnInitComplete": function() {
+      // Focus the input field
+      $("#ansibledb_tbl_filter input").focus();
+
+      // Set the search box value to the query string 'search' part
+      var qp = getQueryParams(document.location.search);
+      if ("search" in qp) {
+        $("#ansibledb_tbl_filter input").val(qp.search);
+        this.fnFilter(qp.search);
+      }
+    }
+  });
+  // Display or hide columns based on localStorage preferences.
+  /*for (var columnId in columnVisibility) {
+    var columnButton = $("a[data-column-id='" + columnId +"']");
+    var columnNr = columnButton.attr('data-column');
+    var column = table.column(columnNr);
+    column.visible(columnVisibility[columnId]);
+    var newClass = ['col-invisible','col-visible'][Number(column.visible())];
+    
+  }*/
+
+ 
+  
+  
+  // Show a direct link to the search term
+  table.on( 'search.dt', function () {
+    $('#filter_link').remove();
+    if (table.search() == "") {
+    } else {
+      $('#ansibledb_tbl_filter label').after('<span id="filter_link">&nbsp; <a title="Direct link to search" href="?search='+table.search()+'">&nbsp;</a></span>');
+    }
+  } );
+
+
+  
+
+ // show or hide columns
+  let selected_text = $("#choices-multiple-remove-button option:selected").text();
+  let selected_val = $("#choices-multiple-remove-button").val();
+  let len = $("#choices-multiple-remove-button option:selected").length;
+  $('#choices-multiple-remove-button').change(function() {
+    let prevSelection_text = selected_text
+    let prevSelection_val = selected_val
+    let len_prev = len
+
+    len=$("#choices-multiple-remove-button option:selected").length
+    selected_text = $(this).find('option:selected').text();
+    selected_val = $("#choices-multiple-remove-button").val();
+    
+   
+    if ((len_prev>len) && (len>0)) {
+      var option_removed_text=prevSelection_text.replace(selected_text,"")
+      var arr1=Object.values(selected_val);
+      var arr2=Object.values(prevSelection_val);
+      let option_removed_val= arr2.filter(x => !arr1.includes(x));
+      var columnId = option_removed_text
+      var column = table.column( option_removed_val );
+    
+      column.visible( false );
+      var newClass = ['col-invisible','col-visible'][Number(column.visible())];
+      columnVisibility[columnId] = column.visible();
+      localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility)); 
+
+    }
+    else if ((len_prev<len) && (len>0)) {
+
+      var option_added_text=selected_text.replace(prevSelection_text,"")
+      var arr1=Object.values(selected_val);
+      var arr2=Object.values(prevSelection_val);
+      
+      let option_added_val= arr1.filter(x => !arr2.includes(x));
+      var columnId = option_added_text
+      var column = table.column( option_added_val );
+      
+      column.visible( true );
+      var newClass = ['col-invisible','col-visible'][Number(column.visible())];
+      columnVisibility[columnId] = column.visible();
+      localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+    }
+    else if (len==0) {
+      localStorage.clear('columnVisibility'); location.reload();
+      
+
+    }
+     
+  });
+ 
+
+  
+  
+});
+
+function filter_status(status)
+    {
+      var st
+      table = $('#ansibledb_tbl').DataTable();
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      if (status == 'all') {
+        table.columns(1).search('').draw();
+      } else {
+        table.columns(1).search(status).draw();
+      }
+    }
+
+</script>
+
+
+  </body>
+  </html>

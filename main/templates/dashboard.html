@@ -1,0 +1,692 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="public">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta content="text/html; charset=UTF-8; X-Content-Type-Options=nosniff" http-equiv="Content-Type" />
+    <title>AnsibleDB</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='searchBuilder.dataTables.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='buttons.dataTables.min.css') }}">
+
+    <!--<link rel=stylesheet type=text/css href="{{ url_for('static', filename='calendar1.css') }}">-->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.6.0.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.dataTables.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='chart.js') }}"></script>
+
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.select.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.searchBuilder.min.js') }}"></script>
+
+     <!-- DataTables button -->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.print.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='dataTables.buttons.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jszip.min.js') }}"></script>
+    <!--<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='pdfmake.min.js') }}"></script>-->
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='vfs_fonts.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='buttons.html5.min.js') }}"></script>
+    <!-- context menu-->
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='jquery.contextMenu.css') }}">
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery.contextMenu.js') }}"></script>
+
+    <!-- date picker-->
+    <script type="text/javascript" src="{{ url_for('static', filename='moment.min.js') }}" ></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='daterangepicker.min.js') }}" ></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='datepicker.css') }}" />
+    <!-- dashboard-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dashboard.css') }}" />
+  </head>
+  <script>
+
+$(function() {
+
+  var start = {%if report_period_start!=""%}'{{report_period_start}}'{%else%}moment().subtract(7, 'days'){%endif%};
+  var end = {%if report_period_end!=""%}'{{report_period_end}}'{%else%}moment(){%endif%};
+  $('input[name="report_time"]').daterangepicker({
+        opens: 'left',
+        timePicker: true,
+        timePicker24Hour: true,
+        //showDropdowns: true,
+        startDate: start,
+        endDate: end,
+        //startDate: moment().startOf('hour'),
+        //endDate: moment().startOf('hour').add(32, 'hour'),
+        locale: {
+          format: 'YYYY-MM-DD HH:mm:ss'
+        },
+        ranges: {
+           'Today': [moment().format('YYYY-MM-DD 00:00:00+00:00'), moment().format('YYYY-MM-DD 23:59:59+00:00')],
+           'Last 24H': [moment().subtract(1, 'days'), moment().format('YYYY-MM-DD 23:59:59+00:00')],
+           'Yesterday': [moment().subtract(1, 'days').format('YYYY-MM-DD 00:00:00+00:00'), moment().subtract(1, 'days').format('YYYY-MM-DD 23:59:59+00:00')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment().format('YYYY-MM-DD 23:59:59+00:00')],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment().format('YYYY-MM-DD 23:59:59+00:00')],
+           'This Month': [moment().startOf('month'), moment().format('YYYY-MM-DD 23:59:59+00:00')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+        }
+    });
+    $('input[name="report_time"]').on('apply.daterangepicker', function(ev, picker) {
+      var form_report_period = document.createElement("form");
+      var host_report_period_start = document.createElement("input");
+      var host_report_period_end = document.createElement("input");
+
+      form_report_period.method = "POST";
+      form_report_period.action = "/";
+      host_report_period_start.type="hidden";
+      host_report_period_start.name="report_period_start";
+      host_report_period_start.value=picker.startDate.format('YYYY-MM-DD HH:mm:ss+00:00');
+      host_report_period_end.type="hidden";
+      host_report_period_end.name="report_period_end";
+      host_report_period_end.value=picker.endDate.format('YYYY-MM-DD HH:mm:ss+00:00')
+      form_report_period.appendChild(host_report_period_start);
+      form_report_period.appendChild(host_report_period_end);
+      document.body.appendChild(form_report_period);
+      form_report_period.submit();
+
+  });
+  });
+
+
+</script>
+
+  <body>
+  <header>
+    <h1>AnsibleDB</h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <!--<span id="menu_button"><a href="/api/docs" title="docs">Api Docs</a></span>-->
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+  <script>
+
+    function display_host_report(host,report_time){
+      //alert(host+'  '+report_time)
+      var form_report_host = document.createElement("form");
+      var host_report_time = document.createElement("input");
+      var hostname = document.createElement("input");
+      form_report_host.method = "POST";
+      form_report_host.action = "/node_report";
+      host_report_time.type="hidden";
+      host_report_time.name="host_report_time";
+      host_report_time.value=report_time;
+      hostname.type="hidden";
+      hostname.name="hostname";
+      hostname.value=host;
+      form_report_host.appendChild(host_report_time);
+      form_report_host.appendChild(hostname);
+      document.body.appendChild(form_report_host);
+      form_report_host.submit();
+}
+
+
+  </script>
+   <div id="div_top">
+   <h2 style="color: dimgrey;">DASHBOARD</h2>
+   <hr class="solid">
+   </div>
+  <!--<div id="dashbaord-div">
+    <div class="dashbaord-label" translate="">Last 24H</div>
+      <label  class="dashbaord-label">Period</label>
+      <span class="selectstyle__box">
+        <select id="period" name="period" class="DashboardGraphs-filterDropdownText">
+          <option value="0">Last 24H</option>
+          <option value="1">Last Week</option>
+          <option value="2">Last Month</option>
+        </select>
+      </span>
+  </div>-->
+  {% if summary !=[] %}
+    {% set len =  summary|length %}
+    {% set rsum_ok= {'sum_ok': 0} %}
+    {% set rsum_play_hosts= {'sum_play_hosts': 0} %}
+    {% set rsum_failures= {'sum_failures': 0} %}
+    {% set rsum_unreachable= {'sum_unreachable': 0} %}
+    {% set rsum_changed= {'sum_changed': 0} %}
+    {% set rsum_skipped= {'sum_skipped': 0} %}
+    {% set rsum_rescued= {'sum_rescued': 0} %}
+    {% set rsum_ignored= {'sum_ignored': 0} %}
+    {% for key in summary[len-1]['summary'].keys()%}
+    {%if key!='summary' and key!='ansible_reports'%}
+      {% if rsum_play_hosts.update({'sum_play_hosts': rsum_play_hosts.sum_play_hosts + 1}) %}{% endif %}
+      {% if rsum_ok.update({'sum_ok': rsum_ok.sum_ok + summary[len-1]['summary'][key]['status']['ok']}) %}{% endif %}
+      {% if rsum_failures.update({'sum_failures': rsum_failures.sum_failures + summary[len-1]['summary'][key]['status']['failed']}) %}{% endif %}
+      {% if rsum_unreachable.update({'sum_unreachable': rsum_unreachable.sum_unreachable + summary[len-1]['summary'][key]['status']['unreachable']}) %}{% endif %}
+      {% if rsum_changed.update({'sum_changed': rsum_changed.sum_changed + summary[len-1]['summary'][key]['status']['changed']}) %}{% endif %}
+      {% if rsum_skipped.update({'sum_skipped': rsum_skipped.sum_skipped + summary[len-1]['summary'][key]['status']['skipped']}) %}{% endif %}
+      {% if rsum_rescued.update({'sum_rescued': rsum_rescued.sum_rescued + summary[len-1]['summary'][key]['status']['rescued']}) %}{% endif %}
+      {% if rsum_ignored.update({'sum_ignored': rsum_ignored.sum_ignored + summary[len-1]['summary'][key]['status']['ignored']}) %}{% endif %}
+    {%endif%}
+    {% endfor %}
+    {% set report_time = summary[len-1]['report_time']%}
+    {% set v_play_hosts = rsum_play_hosts.sum_play_hosts %}
+    {% set v_ok = rsum_ok.sum_ok %}
+    {% set v_failures = rsum_failures.sum_failures %}
+    {% set v_unreachable = rsum_unreachable.sum_unreachable %}
+    {% set v_changed = rsum_changed.sum_changed %}
+    {% set v_skipped = rsum_skipped.sum_skipped %}
+    {% set v_rescued = rsum_rescued.sum_rescued %}
+    {%  set v_ignored = rsum_ignored.sum_ignored %} 
+    <br>
+{% endif %}
+  <div class="DashboardCounts">
+    <a class="DashboardCounts-buttonStyle ng-scope" href="javascript:get_last_play_hosts('{%print(report_time)%}')">
+      <div id="v_play_hosts" class="DashboardCounts-number ng-binding">
+        {% if summary !=[] %}{%print(v_play_hosts)%}{% else %}0{%endif%}
+    </div>
+    <h6 class="DashboardCounts-label ng-binding">PLAY Hosts</h6></a>
+   <a class="DashboardCounts-buttonStyle ng-scope" href="javascript:get_hosts_status('{%print(report_time)%}','ok')">
+        <div id="v_ok" class="DashboardCounts-number ng-binding">
+          {% if summary !=[] %}{%print(v_ok)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">OK</h6>
+    </a><a class="DashboardCounts-buttonStyle ng-scope" href="javascript:get_hosts_status('{%print(report_time)%}','changed')">
+        <div id="v_changed" class="DashboardCounts-number ng-binding" >
+          {% if summary !=[] %}{%print(v_changed)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">Changed</h6>
+    </a><a class="DashboardCounts-buttonStyle ng-scope" href="javascript:get_hosts_status('{%print(report_time)%}','failed')">
+        <div id="v_failed" class="DashboardCounts-number ng-binding">
+          {% if summary !=[] %}{%print(v_failures)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">Failures</h6>
+    </a><a class="DashboardCounts-buttonStyle ng-scope"  href="javascript:get_hosts_status('{%print(report_time)%}','unreachable')">
+        <div id="v_unreachable" class="DashboardCounts-number ng-binding" >
+          {% if summary !=[] %}{%print(v_unreachable)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">Unreachable</h6>
+    </a><a class="DashboardCounts-buttonStyle ng-scope"  href="javascript:get_hosts_status('{%print(report_time)%}','skipped')">
+        <div id="v_skipped" class="DashboardCounts-number ng-binding" >
+          {% if summary !=[] %}{%print(v_skipped)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">Skipped</h6>
+    </a><a class="DashboardCounts-buttonStyle ng-scope"  href="javascript:get_hosts_status('{%print(report_time)%}','rescued')">
+        <div  id="v_rescued" class="DashboardCounts-number ng-binding" >
+          {% if summary !=[] %}{%print(v_rescued)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">rescued</h6>
+      </a><a class="DashboardCounts-buttonStyle ng-scope"  href="javascript:get_hosts_status('{%print(report_time)%}','ignored')">
+        <div id="v_ignored" class="DashboardCounts-number ng-binding" >
+          {% if summary !=[] %}{%print(v_ignored)%}{% else %}0{%endif%}
+        </div>
+        <h6 class="DashboardCounts-label ng-binding">Ignored</h6>
+    </a>
+
+</div>
+
+<!---- Graph-->
+
+<div id="dashbaord-div">
+  <div class="DashboardGraphs-headerSection">
+      <h3 class="DashboardGraphs-headerText">
+          <translate>Ansible Reports</translate>
+      </h3> 
+            <!--<div class="DashboardGraphs-filterLabel" translate="">Period</div>
+            <div class="DashboardGraphs-periodDropdown">
+            <span>
+              <form name="report_period_form" action="/" method="POST">
+              <select id="period" name="report_period" class="DashboardGraphs-filterDropdownText" onchange="this.form.submit()">
+                <option value="0" {%if report_period == '0'%} selected {%endif%}>Last RUN</option>
+                <option value="1" {%if report_period == '1'%} selected {%endif%}>Last 24H</option>
+                <option value="7" {%if (report_period == '7') or (report_period == None) %} selected {%endif%}>Last Week</option>
+                <option value="30" {%if report_period == '30'%} selected {%endif%}>Last Month</option>
+              </select>
+            </form>
+            </span>
+          </div>-->
+          <p style="color: #606060;font-size: 13px; padding: 0 5px;">period:</p><input name="report_time" type="text" readonly title="Click to select report period" style="color: #606060;background: #fff; font-size: 12px;cursor: pointer;padding:0 5px; border: 0px solid #ccc;vertical-align: middle; width: 16%">
+
+          <!--    div test-->
+  </div>
+  <div class="DashboardGraphs-graphToolbar" ng-show="!hostStatusSelected">
+    <canvas id="report_chart" style="width:100%;max-width:1800px;height:300px"></canvas>
+  </div>
+</div>
+
+<!--- Report details-->
+{% if result !=[] %}
+<div id="ansibledb_tbl_div">
+  <div id="ansibledb_tbl_wrapper">
+    <table id="ansibledb_tbl" class="display compact">
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>Report Time</th>
+        <th>hostname</th>
+        <th>status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set rcount_report= {'count_report': 0} %}
+      {% set report_id_array = [] %}
+      {% for report in summary%}
+        {% if rcount_report.update({'count_report': rcount_report.count_report + 1}) %}{% endif %}
+        {%if rcount_report.count_report %2 == 0 %}
+        {% set report_id_array = report_id_array.append('#dddddd')%}
+        {%else%}
+        {% set report_id_array = report_id_array.append('white')%}
+        {%endif%}
+        {% for host in report['summary'].keys()%}
+        {% if host != 'summary' and host !='ansible_reports'%}
+      <tr>
+        <td>{{rcount_report.count_report}}</td>
+        <td><a href="javascript:filter_by_report_time('{%print(report['report_time'])%}')">{{ report['report_time']}}</a></td>
+        <td><a href="javascript:filter_by_host('{%print(host)%}')">{{ host}}</a></td>
+
+        <td><a href="javascript:display_host_report('{%print(host)%}','{%print(report['report_time'])%}')" >
+          <div class="container_status">
+          {%if report['summary'][host]['status']['ok'] !=0 %}<div class="status_ok">{{ report['summary'][host]['status']['ok']}}</div><div hidden>ok</div>{%endif%}
+          {%if report['summary'][host]['status']['changed'] !=0 %}<div class="status_changed">{{ report['summary'][host]['status']['changed']}}</div><div hidden>changed</div>{%endif%}
+          {%if report['summary'][host]['status']['failed'] !=0 %}<div class="status_failures">{{ report['summary'][host]['status']['failed']}}</div><div hidden>failed</div>{%endif%}
+          {%if report['summary'][host]['status']['unreachable'] !=0 %}<div class="status_unreachable">{{ report['summary'][host]['status']['unreachable']}}</div><div hidden>unreachable</div>{%endif%}
+          {%if report['summary'][host]['status']['skipped'] !=0 %}<div class="status_skipped">{{ report['summary'][host]['status']['skipped']}}</div><div hidden>skipped</div>{%endif%}
+          {%if report['summary'][host]['status']['rescued'] !=0 %}<div class="status_rescued">{{ report['summary'][host]['status']['rescued']}}</div><div hidden>rescued</div>{%endif%}
+          {%if report['summary'][host]['status']['ignored'] !=0 %}<div class="status_ignored">{{ report['summary'][host]['status']['ignored']}}</div><div hidden>ignored</div>{%endif%}
+          
+        </div>
+      </a>
+        </td>
+   
+      </tr>
+      {%endif%}
+      {% endfor %}
+     {% endfor %}
+    </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+
+<!--     test -->
+
+  <footer>
+    <p>Nasredine Bentoumi - 2023</p>
+  </footer>
+  <script>
+    $(document).ready( function () {
+      
+      function getQueryParams(qs) {
+        qs = qs.split('+').join(' ');
+        var params = {},
+          tokens,
+          re = /[?&]?([^=]+)=([^&]*)/g;
+        while (tokens = re.exec(qs)) {
+          params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+        }
+        return params;
+      }
+    
+      // Get persisted column visibility from localStorage.
+      var columnVisibility = localStorage.getItem("columnVisibility");
+      if (columnVisibility == null) {
+        columnVisibility = {
+            "username": true,
+            "token": true,
+            "delete": true,
+          
+        };
+        localStorage.setItem("columnVisibility", JSON.stringify(columnVisibility));
+      } else {
+        columnVisibility = JSON.parse(columnVisibility);
+      }
+       
+      // Initialize the DataTables jQuery plugin on the host overview table
+      var table = $('#ansibledb_tbl').DataTable({
+        "jQueryUI": true,
+        //"dom": 'l<"H"Rf>t<"F"ip>',
+        dom: 'QB<l><"clear">frtip',
+        buttons: [ 'csv', 'excel', 'print'],
+        order: [[1, 'desc']],
+        paging: true,
+        pagingType: 'full_numbers',
+        pageLength: 25,
+        lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+        columnDefs: [
+            { "name": 'id',
+              "targets": [0],
+              "visible": true,
+              "sType": "string"
+            },
+            { "name": 'report_time',
+              "targets": [1],
+              "visible": true,
+              "sType": "string"
+            },
+           
+            { "name": 'hostname',
+              "targets": [2],
+              "visible": true,
+              "sType": "string"
+            },
+            { "name": 'status',
+              "targets": [3],
+              "visible": true,
+              "sType": "string"
+            },
+           
+        ],
+        "fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+          
+          
+          var id_array = [{%for arr in report_id_array%}'{{arr|safe}}',{%endfor%}]
+          var i = parseInt(aData[0])-1
+
+          $('td', nRow).css('background-color', id_array[i]);
+          /*if ( aData[0] % 2 == 0){
+            $('td', nRow).css('background-color', '#dddddd');
+          } else {
+            $('td', nRow).css('background-color', 'white');
+          }*/
+          
+                        
+        },
+        "fnInitComplete": function() {
+          // Focus the input field
+          $("#ansibledb_tbl_filter input").focus();
+    
+          // Set the search box value to the query string 'search' part
+          var qp = getQueryParams(document.location.search);
+          if ("search" in qp) {
+            $("#ansibledb_tbl_filter input").val(qp.search);
+            this.fnFilter(qp.search);
+          }
+        }
+      });
+  $.contextMenu({
+  selector: 'tr', 
+  trigger: 'right',
+  callback: function(key, options) {
+    var row = table.row(options.$trigger)
+    var idx = table.column( 'report_time:name' ).index()
+    switch (key) {
+      case 'delete' :
+        if (typeof idx !== "undefined") {
+          //row.remove().draw()
+          var str = row.data()[idx]
+          var report_time = str.substring(str.indexOf(">") + 1, str.lastIndexOf("<"));
+          var form_delete_report = document.createElement("form");
+          var report_delete = document.createElement("input"); 
+          form_delete_report.method = "POST";
+          form_delete_report.action = "/";
+          report_delete.type="hidden";
+          report_delete.name="report_delete";
+          report_delete.value=report_time;
+          form_delete_report.appendChild(report_delete);
+          document.body.appendChild(form_delete_report);
+          form_delete_report.submit();
+        }
+        break;
+      case 'remove_filter' :
+        table
+                        .search('')
+                        .columns().search('')
+                        .draw();
+                break;
+
+      default :
+        break
+    } 
+  },
+  items: {
+    {% if username == 'admin'%}
+    "delete": {name: "» Delete Report"},
+    {% endif %}
+    "remove_filter": {name: "» Remove Datatable filter"},
+  }
+})
+    
+      // Show a direct link to the search term
+      table.on( 'search.dt', function () {
+        $('#filter_link').remove();
+        if (table.search() == "") {
+        } else {
+          $('#ansibledb_tbl_filter label').after('<span id="filter_link">&nbsp; <a title="Direct link to search" href="?search='+table.search()+'">&nbsp;</a></span>');
+        }
+      } );
+    });
+    function filter_by_host(host)
+    {
+      table = $('#ansibledb_tbl').DataTable();
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      table.columns(3).search('').draw();
+      table.columns(2).search(host).draw();
+    }
+    /*function filter_by_report_time(report_time)
+    {
+      table = $('#ansibledb_tbl').DataTable();
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      table.columns(3).search('').draw();
+      table.columns(1).search(report_time).draw();
+    }*/
+    function get_hosts_status(report_time,status)
+    {
+      table = $('#ansibledb_tbl').DataTable()
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      table.columns(3).search('').draw();
+      table.columns(3).search(status).draw();
+    }
+    function get_last_play_hosts(report_time)
+    {
+      table = $('#ansibledb_tbl').DataTable();
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      table.columns(3).search('').draw();
+      //table.columns(0).search(report_time).draw();
+      //table.draw()
+    }
+
+
+    </script>
+    </body>
+  </html>
+  {% set play_array=[]%}
+  {% set ok_array=[] %}
+  {% set failures_array=[] %}
+  {% set unreachable_array=[] %}
+  {% set changed_array=[] %}
+  {% set skipped_array=[] %}
+  {% set rescued_array=[] %}
+  {% set ignored_array=[] %}
+  {%for report in summary %}
+  {% set ok_sum=0 %}
+  {% set fsum_play_host= {'sum_host': 0} %}
+  {% set fsum_ok= {'sum_ok': 0} %}
+  {% set fsum_failures= {'sum_failures': 0} %}
+  {% set fsum_unreachable= {'sum_unreachable': 0} %}
+  {% set fsum_changed= {'sum_changed': 0} %}
+  {% set fsum_skipped= {'sum_skipped': 0} %}
+  {% set fsum_rescued= {'sum_rescued': 0} %}
+  {% set fsum_ignored= {'sum_ignored': 0} %}
+  {% set count = 0 %}
+    {% for v in summary[loop.index-1]['summary'].keys() %}
+      {%if v!='summary' and v!='ansible_reports'%}
+        {% if fsum_play_host.update({'sum_host': fsum_play_host.sum_host + 1}) %}{% endif %}
+        {% if fsum_ok.update({'sum_ok': fsum_ok.sum_ok + report['summary'][v]['status']['ok']}) %}{% endif %}
+        {% if fsum_failures.update({'sum_failures': fsum_failures.sum_failures + report['summary'][v]['status']['failed']}) %}{% endif %}
+        {% if fsum_unreachable.update({'sum_unreachable': fsum_unreachable.sum_unreachable + report['summary'][v]['status']['unreachable']}) %}{% endif %}
+        {% if fsum_changed.update({'sum_changed': fsum_changed.sum_changed + report['summary'][v]['status']['changed']}) %}{% endif %}
+        {% if fsum_skipped.update({'sum_skipped': fsum_skipped.sum_skipped + report['summary'][v]['status']['skipped']}) %}{% endif %}
+        {% if fsum_rescued.update({'sum_rescued': fsum_rescued.sum_rescued + report['summary'][v]['status']['rescued']}) %}{% endif %}
+        {% if fsum_ignored.update({'sum_ignored': fsum_ignored.sum_ignored + report['summary'][v]['status']['ignored']}) %}{% endif %}
+      {%endif%}
+    {% endfor %}
+
+  {% set play_array = play_array.append(fsum_play_host.sum_host)%}
+  {% set ok_array = ok_array.append(fsum_ok.sum_ok)%}
+  {% set failures_array = failures_array.append(fsum_failures.sum_failures)%}
+  {% set unreachable_array = unreachable_array.append(fsum_unreachable.sum_unreachable)%}
+  {% set changed_array = changed_array.append(fsum_changed.sum_changed)%}
+  {% set skipped_array = skipped_array.append(fsum_skipped.sum_skipped)%}
+  {% set rescued_array = rescued_array.append(fsum_rescued.sum_rescued)%}
+  {% set ignored_array = ignored_array.append(fsum_ignored.sum_ignored)%}
+  {% endfor %}
+
+  <script>
+function filter_by_report_time(report_time)
+    {
+      table = $('#ansibledb_tbl').DataTable();
+      table.columns(1).search('').draw();
+      table.columns(2).search('').draw();
+      table.columns(3).search('').draw();
+      table.columns(1).search(report_time).draw();
+      var index_report_time= data.labels.indexOf(report_time)
+      var play_hosts = {%print(play_array)%}
+      var sum_ok= data.datasets[0].data[index_report_time]
+      var sum_changed= data.datasets[1].data[index_report_time]
+      var sum_failed= data.datasets[2].data[index_report_time]
+      var sum_unreachable= data.datasets[3].data[index_report_time]
+      var sum_skipped= data.datasets[4].data[index_report_time]
+      var sum_rescued= data.datasets[5].data[index_report_time]
+      var sum_ignored= data.datasets[6].data[index_report_time]
+      document.getElementById('v_play_hosts').innerText=play_hosts[index_report_time]
+      document.getElementById('v_ok').innerText=sum_ok
+      document.getElementById('v_changed').innerText=sum_changed
+      document.getElementById('v_failed').innerText=sum_failed
+      document.getElementById('v_unreachable').innerText=sum_unreachable
+      document.getElementById('v_skipped').innerText=sum_skipped
+      document.getElementById('v_rescued').innerText=sum_rescued
+      document.getElementById('v_ignored').innerText=sum_ignored
+      
+    }
+  
+  var report_time = [{%for report in summary %}"{{ summary[loop.index-1]['report_time']}}",{% endfor %}]
+  var summary_ok = []
+
+  const labels = report_time;
+  const data = {
+  labels: labels,
+  datasets: [
+    {
+      label: 'Ok',
+      data: {%print(ok_array)%},
+      backgroundColor: '#28a745',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,    
+    },
+    {
+      label: 'CHANGED',
+      data: {%print(changed_array)%},
+      backgroundColor: '#ffc107',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,    
+    },
+    {
+      label: 'FAILURES',
+      data: {%print(failures_array)%},
+      backgroundColor: '#dc3545',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,
+    },
+    {
+      label: 'UNREACHABLE',
+      data: {%print(unreachable_array)%},
+      backgroundColor: '#6c757d',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,
+    },
+    {
+      label: 'SKIPPED',
+      data: {%print(skipped_array)%},
+      backgroundColor: '#007bff',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,
+    },
+    {
+      label: 'RESCUED',
+      data: {%print(rescued_array)%},
+      backgroundColor: '#e83e8c',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,
+    },
+    {
+      label: 'IGNORED',
+      data: {%print(ignored_array)%},
+      backgroundColor: '#17a2b8',
+      stack: 'Stack 0',
+      barThickness: 18,
+      maxBarThickness: 20,
+    },
+  ]
+};
+  
+  const config = {
+  type: 'bar',
+  data: data,
+  options: {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Ansible Reports'
+      },
+    },
+    responsive: true,
+    onClick: function (e) {
+        //debugger;
+        try{
+        var activePointLabel = this.getElementsAtEvent(e)[0]._model.label;
+        //alert("'"+activePointLabel+"'")
+        filter_by_report_time(activePointLabel)
+        }catch{
+         
+        }
+        //alert(activePointLabel);
+        //const { dataIndex, raw } = clickedElements[0].element.$context
+        //const barLabel = event.chart.data.labels[dataIndex]
+        
+    },
+    /*
+        scales: {
+      x: {
+        stacked: true,
+      },
+      y: {
+        stacked: true,
+        
+      }
+    }
+    */
+    scales: {
+        xAxes: [{
+                display: true,
+                stacked: true,
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Ansible report time'
+                }
+            }],
+        yAxes: [{
+                display: true,
+                stacked: true,
+                //labelString: 'Ansible tasks',
+                ticks: {
+                    min: 0,
+                    //beginAtZero: true,
+                    //steps: 10,
+                    //stepValue: 5,
+                    //max: 500
+                }
+            }]
+    },
+    //
+  },
+
+};
+  
+new Chart("report_chart", config);
+
+
+
+</script>
