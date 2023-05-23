@@ -1,6 +1,6 @@
 """
 API Server for Ansible Reports and Facters, uses mongodb as Database.
-2023 - Nasredine Bentoumi - nasredine.bentoumi@gmil.com
+2023 - Nasredine Bentoumi - nasredine.bentoumi@gmail.com
 """
 from ldap3 import Server, Connection, ALL, SUBTREE
 from ldap3.core.exceptions import LDAPException, LDAPBindError
