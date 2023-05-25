@@ -27,7 +27,7 @@ app.register_blueprint(swaggerui_blueprint)
 
 load_dotenv()
 
-MONGO_HOST = os.environ.get("MONGOHOST")
+MONGO_HOST = os.environ.get("MONGO_HOST")
 MONGO_USER = os.environ.get("MONGO_USERNAME")
 MONGO_PASS = os.environ.get("MONGO_PASSWORD")
 MONGO_PORT = os.environ.get("MONGO_PORT")
