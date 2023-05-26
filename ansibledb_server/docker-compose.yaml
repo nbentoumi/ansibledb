@@ -20,7 +20,6 @@ services:
       MONGO_PASSWORD: changeme
       MONGO_DATABASE: ansibledb
       MONGO_PORT: 27017
-      ANSIBLEDB_PORT: 8080
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin
       # Uncomment variables below with appropriate values to enable LDAP
