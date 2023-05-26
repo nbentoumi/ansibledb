@@ -1,0 +1,47 @@
+- hosts: all
+  # Gather ansible_facts
+  gather_facts: yes
+  tasks:
+    # Gather packages of node
+    - name: Gather packages facter
+      package_facts:
+    - name: get uptime
+      ignore_errors: True
+      ignore_unreachable: true
+      changed_when: False
+      failed_when: False
+      shell: "uptime -p | sed -e 's/up//g'"
+      register: uptime
+    
+    - name: Check top cpu consumer
+      ignore_errors: True
+      changed_when: False
+      failed_when: False
+      shell: "ps -eo pid,ppid,cmd,%cpu --sort=-%cpu | head -4"
+      register: top_cpu_consumer
+    
+    - name: Check top memory consumer
+      ignore_errors: True
+      changed_when: False
+      failed_when: False
+      shell: "ps -eo pid,ppid,cmd,%mem --sort=-%mem | head -4"
+      register: top_memory_consumer
+    
+    - name: Check last oom killer
+      ignore_errors: True
+      changed_when: False
+      failed_when: False
+      shell: 'dmesg -T | grep -i "Out of memory" | awk -F: ''{print $1"  "$2"  "$3"  "$4}''| tail -2'
+      register: last_oom
+      
+    # Custom facts will be sent to Ansible DB
+    - name: Gather custom facters
+      set_fact:
+        os: "{{ ansible_distribution }} {{ ansible_distribution_version }}"
+        ip: "{{ ansible_host }}"
+        hostname: "{{ inventory_hostname }}"
+        virtual: "{{ is_virtual }}"
+        top_memory_consumer: "{{ top_memory_consumer.stdout_lines | default('') }}"
+        top_cpu_consumer: "{{ top_cpu_consumer.stdout_lines | default('') }}"
+        last_oom: "{{ last_oom.stdout_lines | default('') }}"
+        uptime: "{{ uptime.stdout | default('') }}"
