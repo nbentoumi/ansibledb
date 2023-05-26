@@ -1,0 +1,30 @@
+version: '3.7'
+services:
+  mongodb:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: changeme
+    ports:
+      - 27017:27017
+    volumes:
+      - /data/db:/data/db
+
+  ansibledb:
+    image: nbentoumi/ansibledb:0.1
+    ports:
+      - 8080:8080
+    environment:
+      MONGO_HOST: localhost
+      MONGO_USERNAME: root
+      MONGO_PASSWORD: changeme
+      MONGO_DATABASE: ansibledb
+      MONGO_PORT: 27017
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      # Uncomment variables below with appropriate values to enable LDAP
+      #LDAP_SERVER: "ldaps://ldap_server:636"
+      #LDAP_BASE_DN: "DC=company,DC=com"
+      #LDAP_FID_USERNAME: "CN=fid_ad_account,OU=Users,OU=OU Units,DC=company,DC=com"
+      #LDAP_FID_PASSWORD: "password"
+      #LDAP_REQUIRED_GROUP: "CN=AD_GROUP,OU=Groups,OU=OU Units,DC=company,DC=com"
