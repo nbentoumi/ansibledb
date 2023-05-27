@@ -347,5 +347,4 @@ class AnsibleDB():
                 servers.update_one({"username":username}, {"$set": { "dashboard_reports_days" : app.config['REPORTS_DISPLAY'] } }, True)
                 return app.config['REPORTS_DISPLAY']
         except:
-            servers.update_one({"username":username}, {"$set": { "dashboard_reports_days" : app.config['REPORTS_DISPLAY'] } }, True)
             return app.config['REPORTS_DISPLAY']

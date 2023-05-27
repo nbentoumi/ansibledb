@@ -306,6 +306,14 @@ class CallbackModule(CallbackBase):
         if text.startswith(prefix):
             return text[len(prefix):]
         return text
+
+    def merge_dicts(self,x,y):
+        """
+        Merge discts x and y
+        """
+        z = x.copy()
+        z.update(y)
+        return z
     
     def send_ansible_facts(self,stats,report_time):
         """
@@ -327,7 +335,8 @@ class CallbackModule(CallbackBase):
                         elif key !='facts':
                             new_fact[key] = old_fact[key]
                         
-                    facts ={**facts, **new_fact}
+                    #facts ={**facts, **new_fact}
+                    facts = self.merge_dicts(facts,new_fact)
             ansible_facts = {"ansible_facts": facts}
             
             #send facts only if host is reachable otherwise host facts will be overided !
