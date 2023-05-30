@@ -39,3 +39,15 @@ in Docker-compose file, you can enable AD authentication by adding the variables
       LDAP_FID_USERNAME: "CN=fid_ad_account,OU=Users,OU=OU Units,DC=company,DC=com", Active Directory account, will be used to map AD users. 
       LDAP_FID_PASSWORD: "password", password of Active Directory account.
       LDAP_REQUIRED_GROUP: "CN=AD_GROUP,OU=Groups,OU=OU Units,DC=company,DC=com", This variable is used to restrict access to AnsibleDB to only users member of AD group, this is optional, if not provided, all Authenticated users will be able to login to AnsibleDB.
+
+AnsibleDB screenshots
+---------------
+* running playbook where we can see 3 changes and 3x8 OK tasks (3 hosts in inventory)
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/e75e7c0c-beee-4d5a-bbf0-9ae494eaf1e8)
+
+
+* Dashboard
+in print screen below, we can see the hosts and ansible stats
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/fc54a148-9e95-4888-90d0-c08950f258e2)
+
+
