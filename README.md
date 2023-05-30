@@ -15,6 +15,8 @@ Features
 Architecture
 --------
 
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/0c6220b4-ec1b-420a-9617-6bd6ce6af6a1)
+
 
 
 Getting started
