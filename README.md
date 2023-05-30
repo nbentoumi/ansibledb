@@ -28,8 +28,8 @@ Getting started
 * Install docker-compose
 * copy docker-compose from the project https://github.com/nbentoumi/ansibledb/blob/main/ansibledb_server/docker-compose.yaml.
 * Run: docker-compose up -d.
-* Add the ansibledb callback plugin under callback_plugin, refrence : https://github.com/nbentoumi/ansibledb/tree/main/ansible_playbooks/callback_plugins.
-* Enable callback plugin in ansible.cfg, refrence : https://github.com/nbentoumi/ansibledb/blob/main/ansible_playbooks/ansible.cfg.
+* Add the ansibledb callback plugin under callback_plugin, reference : https://github.com/nbentoumi/ansibledb/tree/main/ansible_playbooks/callback_plugins.
+* Enable callback plugin in ansible.cfg, reference : https://github.com/nbentoumi/ansibledb/blob/main/ansible_playbooks/ansible.cfg.
 * Run playbook, as an example https://github.com/nbentoumi/ansibledb/blob/main/ansible_playbooks/inventory.yml
 
 in Docker-compose file, you can enable AD authentication by adding the variables below
@@ -53,7 +53,7 @@ in print screen below, we can see the hosts and ansible stats
 
 * Ansible logs:
 
-when running ansible with option --diff, the diff changes will be available in the output of ansible run command, as well those diffs will be sent to ansibledb, the changes will be added the graph and saved to database, user will be able to display the diff changes.
+when running ansible with option --diff, the diff changes will be available in the output of ansible run command, as well those diffs will be sent to ansibledb, the changes will be added to the graph and saved to database, user will be able to display the diff changes.
 
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/dae6e305-0abc-454d-bbe1-0b49298607d7)
 
