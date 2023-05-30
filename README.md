@@ -14,6 +14,10 @@ Features
 
 Architecture
 --------
+AnsibleDB is composed of 3 layers :
+* playbook which gather facters and execute tasks, callback plugin send the facts and reports to the API server.
+* AnsibleDB API which interacts with users, is a docker container.
+* MongoDB which is the Database of the API server.
 
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/0c6220b4-ec1b-420a-9617-6bd6ce6af6a1)
 
@@ -21,3 +25,17 @@ Architecture
 
 Getting started
 ---------------
+* Install docker-compose
+* copy docker-compose from the project https://github.com/nbentoumi/ansibledb/blob/main/ansibledb_server/docker-compose.yaml.
+* Run: docker-compose up -d.
+* Add the ansibledb callback plugin under callback_plugin, refrence : https://github.com/nbentoumi/ansibledb/tree/main/ansible_playbooks/callback_plugins.
+* Enable callback plugin in ansible.cfg, refrence : https://github.com/nbentoumi/ansibledb/blob/main/ansible_playbooks/ansible.cfg.
+* Run playbook, as an example https://github.com/nbentoumi/ansibledb/blob/main/ansible_playbooks/inventory.yml
+
+in Docker-compose file, you can enable AD authentication by adding the variables below
+
+      LDAP_SERVER: "ldaps://ldap_server:636", LDAP server
+      LDAP_BASE_DN: "DC=company,DC=com", Base DN
+      LDAP_FID_USERNAME: "CN=fid_ad_account,OU=Users,OU=OU Units,DC=company,DC=com", Active Directory account, will be used to map AD users. 
+      LDAP_FID_PASSWORD: "password", password of Active Directory account.
+      LDAP_REQUIRED_GROUP: "CN=AD_GROUP,OU=Groups,OU=OU Units,DC=company,DC=com", This variable is used to restrict access to AnsibleDB to only users member of AD group, this is optional, if not provided, all Authenticated users will be able to login to AnsibleDB.
