@@ -50,4 +50,11 @@ AnsibleDB screenshots
 in print screen below, we can see the hosts and ansible stats
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/fc54a148-9e95-4888-90d0-c08950f258e2)
 
+* Ansible logs
+when running ansible with option --diff, the diff changes will be available in the output of ansible run command, as well those diffs will be sent to ansibledb, the changes will be added the graph and saved to database, user will be able to display the diff changes.
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/dae6e305-0abc-454d-bbe1-0b49298607d7)
+
+
+
 
