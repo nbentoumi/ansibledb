@@ -46,14 +46,56 @@ AnsibleDB screenshots
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/e75e7c0c-beee-4d5a-bbf0-9ae494eaf1e8)
 
 
-* Dashboard
+* Dashboard:
+
 in print screen below, we can see the hosts and ansible stats
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/fc54a148-9e95-4888-90d0-c08950f258e2)
 
-* Ansible logs
+* Ansible logs:
+
 when running ansible with option --diff, the diff changes will be available in the output of ansible run command, as well those diffs will be sent to ansibledb, the changes will be added the graph and saved to database, user will be able to display the diff changes.
 
 ![image](https://github.com/nbentoumi/ansibledb/assets/6154423/dae6e305-0abc-454d-bbe1-0b49298607d7)
+
+* Inventory:
+as we run Ansible against source inventory, dynamic inventory will be available and can be customized with facters collected.
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/618cf575-be2a-462c-aadf-0503db8c3438)
+
+* facters collected:
+users will be able to see facters collected for each host:
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/2179e6c6-792f-4dcc-b499-b934358a617f)
+
+* query facters:
+Users will be able to search facters, those facters can be ansible collected facters, custom facters, packages cached.
+
+below, an example where we search for the package openssl on the nodes:
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/51008458-3609-48f7-b4fe-330d912bd762)
+
+below, an example where we search for kernel, the result provide a chart about this facter, the chart will count the number per result.
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/f0c39d20-a21d-4f4e-ab3c-a410fcaee9cf)
+* settings:
+
+users , will be able to :
+
+1) Add or remove columns from the inventory, columns are facters available in the database.
+2) for admin only, the number of days to keep logs, older logs will be rotated automatically. Also users can set the number of days to display in dashboard, for example 1, user will see by default last 24H logs in dashboard.
+3) generate and save token, where they can use it to interact with API using curl command or Swagger UI.
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/dac0ef24-7629-48e9-9098-1dd97e955ff8)
+
+* Swagger UI
+
+Add token, using authorize button, then query AnsibleDB, example below query kernel facter
+
+![image](https://github.com/nbentoumi/ansibledb/assets/6154423/7bc85905-6a8f-4e06-9ba7-204a62a2c095)
+
+
+
+
+
 
 
 
