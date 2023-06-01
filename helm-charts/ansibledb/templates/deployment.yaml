@@ -33,6 +33,41 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MONGO_HOST
+              value: {{ include "ansibledb.mongodbServiceName" . }}
+            - name: MONGO_USER
+              value: {{ index .Values.mongodb.auth.usernames 0 }}
+            - name: MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: mongodb-password
+                  name: {{ include "ansibledb.fullname" . }}
+            - name: MONGO_PORT
+              value: {{ include "ansibledb.mongodbServicePort" . | quote }}
+            - name: MONGO_DB
+              value: {{ index .Values.mongodb.auth.databases 0 }}
+            - name: ADMIN_USERNAME
+              value: {{ .Values.ansibledb.admin.username }}
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: admin-password
+                  name: {{ include "ansibledb.fullname" . }}
+            - name: LDAP_FID_USERNAME
+              value: {{ .Values.ansibledb.ldap.username }}
+            - name: LDAP_FID_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: ldap-fid-password
+                  name: {{ include "ansibledb.fullname" . }}
+            - name: LDAP_SERVER
+              value: {{ .Values.ansibledb.ldap.server }}
+            - name: LDAP_BASE_DN
+              value: {{ .Values.ansibledb.ldap.baseDn }}
+            - name: LDAP_REQUIRED_GROUP
+              value: {{ .Values.ansibledb.ldap.requiredGroup }}
+   
           ports:
             - name: http
               containerPort: 80
