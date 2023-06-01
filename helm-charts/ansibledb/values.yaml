@@ -79,10 +79,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
 ansibledb:
   admin:
     username: admin
     password: admin
+  # variables below with appropriate values to enable LDAP
+  #ldap:
+  #  username: "CN=fid_ad_account,OU=Users,OU=OU Units,DC=company,DC=com"
+  #  password: changeme
+  #  server: "ldaps://ldap_server:636""
+  #  baseDn: "DC=company,DC=com"
+  #  requiredGroup: "CN=AD_GROUP,OU=Groups,OU=OU Units,DC=company,DC=com"
     
 mongodb:
   enabled: true
