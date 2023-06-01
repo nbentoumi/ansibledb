@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: nbentoumi/ansibledb
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "0.1"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -73,10 +73,43 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 100
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
+ansibledb:
+  admin:
+    username: admin
+    password: admin
+    
+mongodb:
+  enabled: true
+  image:
+    registry: docker.io
+  architecture: standalone
+  service:
+    nameOverride: mongodb
+    ports:
+      mongodb: 27017
+  auth:
+    enabled: true
+    rootUser: root
+    rootPassword: changeme
+  persistence:
+    size: 20Gi
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+    
+
