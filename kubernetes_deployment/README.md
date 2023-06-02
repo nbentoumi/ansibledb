@@ -19,3 +19,7 @@ helm  upgrade --install mongodb bitnami/mongodb -f ./mongo_values.yml -n ansible
 
 deploy ansibledb
 --------
+```
+kubectl apply -f ansibledb-deployment.yml -n ansibledb
+```
+
