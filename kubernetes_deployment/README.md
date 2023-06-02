@@ -6,7 +6,7 @@ Create Namespace
 kubectl create namespace ansibledb 
 ```
 
-deploy mongodb
+Deploy mongodb
 --------
 ```
 # Add repo
@@ -17,9 +17,10 @@ helm repo update
 helm  upgrade --install mongodb bitnami/mongodb -f ./mongo_values.yml -n ansibledb
 ```
 
-deploy ansibledb
+Deploy ansibledb
 --------
 ```
+# review the yaml ansibledb-deployment.yml with appropriate values
 kubectl apply -f ansibledb-deployment.yml -n ansibledb
 ```
 
