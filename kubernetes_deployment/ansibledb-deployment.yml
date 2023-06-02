@@ -133,7 +133,7 @@ spec:
     targetPort: http
   tls:
     termination: edge
-    certificate: "-----BEGIN CERTIFICATE-----\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\r\..........................\r\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa==\r\n-----END CERTIFICATE-----"
+    certificate: "-----BEGIN CERTIFICATE-----\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\nyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\r\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa==\r\n-----END CERTIFICATE-----"
     key: |
       -----BEGIN RSA PRIVATE KEY-----
       xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
