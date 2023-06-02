@@ -2,7 +2,7 @@
 apiVersion: v1
 data:
   admin-password: YWRtaW4K (admin as an example)
-  fid-password: cGFzcwo= (pass as an example)
+  fid-password: Y2hhbmdlbWUK (changeme as an example)
 kind: Secret
 metadata:
   name: ansibledb
@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - env:
-        - name: MONGOHOST
+        - name: MONGO_HOST
           value: mongodb
         - name: MONGO_USERNAME
           value: root
