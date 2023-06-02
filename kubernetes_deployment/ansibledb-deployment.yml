@@ -164,7 +164,7 @@ spec:
     - Ingress
     - Egress
 ---
-# deployment with ingress
+# deployment with ingress instead route
 ---
 apiVersion: v1
 data:
