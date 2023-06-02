@@ -1,0 +1,28 @@
+auth:
+  enabled: true
+  rootUser: "root"
+  rootPassword: "changeme"
+service:
+  nameOverride: "mongodb"
+serviceAccount:
+  create: true
+  name: "mongodb"
+podSecurityContext:
+  fsGroup: 1001000000
+containerSecurityContext:
+  runAsUser: 1001000000
+persistence:
+  enabled: true
+  existingClaim: ""
+  resourcePolicy: keep
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  mountPath: /bitnami/mongodb
+resources:
+  limits:
+    cpu: 2000m
+    memory: 1024Mi
+  requests:
+    cpu: 1000m
+    memory: 800Mi
