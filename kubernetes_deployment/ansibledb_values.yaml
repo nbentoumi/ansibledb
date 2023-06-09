@@ -1,0 +1,180 @@
+# Default values for ansibledb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: nbentoumi/ansibledb
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "0.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+securityContext: {}
+  # allowPrivilegeEscalation: false
+  # runAsNonRoot: true
+  # runAsUser: 2000
+
+podSecurityContext:
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 25
+  periodSeconds: 20
+  successThreshold: 1
+  tcpSocket:
+    port: http
+  timeoutSeconds: 1
+
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: http
+  timeoutSeconds: 1
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: "1"
+    memory: 1Gi
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+## For creating a Route, allowing your application to be accessed from outside the OCP cluster
+route:
+  enabled: true
+  host: ansibledb.company.com
+  path: /
+  targetPort: http
+  tls:
+    enabled: true
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+    ## IMPORTANT: secret data should be encrypted
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      .
+      .
+      -----END RSA PRIVATE KEY-----
+
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      .
+      .
+      -----END CERTIFICATE-----
+
+# for OCP create network policy
+networkPolicy:
+  enabled: true
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+ansibledb:
+  labels: ansibledb
+  admin:
+    username: admin
+    password: password
+  # set to true to enable LDAP and provide variables below with appropriate values
+  ldap:
+    enabled: false
+    # fid_username: "CN=fid_ad_account,OU=Users,OU=OU Units,DC=company,DC=com"
+    # fid_password: "password"
+    # server: "ldaps://AD_ldap_server:636"
+    # baseDn: "DC=company,DC=com"
+    # requiredGroup: "CN=AD_GROUP,OU=Groups,OU=OU Units,DC=company,DC=com"
+
+mongodb:
+  enabled: true
+  image:
+    registry: docker.io
+  architecture: standalone
+  service:
+    nameOverride: mongodb
+    ports:
+      mongodb: 27017
+  auth:
+    enabled: true
+    rootUser: root
+    rootPassword: changeme
+    usernames: ["ansibledb"]
+    databases: ["ansibledb"]
+  persistence:
+    size: 20Gi
+
+  podSecurityContext:
+    fsGroup: 1001950000
+  containerSecurityContext:
+    runAsUser: 1001950000
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1024Mi
+    requests:
+      cpu: 1000m
+      memory: 800Mi
+
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
