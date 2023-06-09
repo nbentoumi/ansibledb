@@ -1,4 +1,16 @@
-Kubernetes deployment
+1 - Kubernetes deployment with helm
+=========================================
+Deploy with helm
+-----
+```
+kubectl create namespace ansibledb 
+helm repo add ansibledb_github https://nbentoumi.github.io/helm-charts/
+helm repo update
+helm upgrade --install ansibledb ansibledb_github/ansibledb  -f ./ansibledb_values.yaml -n ansibledb
+```
+
+
+2 - Kubernetes deployment with manifest
 =========================================
 Create Namespace
 -----
