@@ -275,9 +275,15 @@ class CallbackModule(CallbackBase):
         summary = {}
         for host in stats.processed.keys():
             total = stats.summarize(host)
+            # Use short hostname
+            try:
+                host_short = host.split('.', 1)[0]
+            except:
+                host_short = host
+
             report = {
                 "ansible_reports": {
-                    "hostname": host,
+                    "hostname": host_short,
                     "report_time": report_time,
                     "status": {
                         "ok": total['ok'],
