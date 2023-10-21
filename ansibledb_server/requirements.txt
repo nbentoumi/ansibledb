@@ -1,7 +1,7 @@
 pymongo
-Flask
+Flask==2.3.3
 python-dotenv
 gunicorn
 flask_swagger_ui
-flask_restx
+flask_restx==1.1.0
 ldap3
