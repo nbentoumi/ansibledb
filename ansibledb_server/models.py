@@ -2,6 +2,7 @@ from ldap3 import Server, Connection, ALL, SUBTREE
 from ldap3.core.exceptions import LDAPException, LDAPBindError
 from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for, session
 import json
+from datetime import datetime, timedelta
 from main import app, servers
 class AnsibleDB():
 
@@ -90,11 +91,18 @@ class AnsibleDB():
     @staticmethod 
     def get_tokens(query):
         result = []
+        token_expire_days = __class__.get_token_expire_days()
         try:
             curs = servers.find(query)
             for i in curs:
                 try:
-                    result.append({'username':i['username'],'token':i['token']})
+                    token_created_at_ts = i.get('token_created_at_ts')
+                    token_expires_at = 'N/A'
+                    if token_created_at_ts is not None:
+                        token_expires_dt = datetime.utcfromtimestamp(int(token_created_at_ts)) + timedelta(days=int(token_expire_days))
+                        token_expires_at = token_expires_dt.strftime('%Y-%m-%d %H:%M:%S UTC')
+
+                    result.append({'username':i['username'],'token':i['token'],'token_expires_at':token_expires_at})
                 except:
                     pass
         except:
@@ -188,17 +196,49 @@ class AnsibleDB():
             token = None
         
         if token is not None:
-            query_token = {"username": {"$regex": '^.*'},"token":token}
             try:
-                curs_token = servers.find(query_token)
-                if len(list(curs_token))!=0:
-                    return True
-                else:
+                token_record = servers.find_one({"token": token}, {"_id": 0, "token_created_at_ts": 1})
+                if token_record is None:
                     return False
+                token_expire_days = __class__.get_token_expire_days()
+                now_ts = int(datetime.utcnow().timestamp())
+
+                token_created_at_ts = token_record.get("token_created_at_ts")
+                # Backward compatibility for legacy tokens without timestamp.
+                if token_created_at_ts is None:
+                    servers.update_one({"token": token}, {"$set": {"token_created_at_ts": now_ts}})
+                    token_created_at_ts = now_ts
+
+                expires_at_ts = int(token_created_at_ts) + (int(token_expire_days) * 86400)
+                return now_ts <= expires_at_ts
             except:
                 return False
         else:
             return False
+
+    @staticmethod
+    def get_token_expire_days():
+        query_admin = {"username": 'admin'}
+        query_project = {"_id": 0, "token_expire_days": 1}
+        default_expire_days = app.config['TOKEN_EXPIRE_DAYS']
+        try:
+            curs_admin = servers.find(query_admin, query_project)
+            res = list(curs_admin)
+            if len(res) != 0:
+                try:
+                    configured_days = int(res[0]['token_expire_days'])
+                    if configured_days < 1:
+                        return default_expire_days
+                    return configured_days
+                except:
+                    servers.update_one({"username": 'admin'}, {"$set": {"token_expire_days": default_expire_days}}, True)
+                    return default_expire_days
+            else:
+                servers.update_one({"username": 'admin'}, {"$set": {"token_expire_days": default_expire_days}}, True)
+                return default_expire_days
+        except:
+            servers.update_one({"username": 'admin'}, {"$set": {"token_expire_days": default_expire_days}}, True)
+            return default_expire_days
     @staticmethod
     def get_report_rotate():
         query_rotate = {"username": 'admin'}
