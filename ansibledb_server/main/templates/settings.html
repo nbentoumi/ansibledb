@@ -120,6 +120,16 @@ function display_selected(){
     <input type="submit" id="save" value="Save log level">
   </form>
   <br>
+  <form id="require-api-token-form" action="/settings" method="POST">
+    <label>Require token for API POST (ansible_facts &amp; reports):&nbsp;
+      <select id="require_api_token" name="require_api_token" required>
+        <option value="false" {% if not require_api_token %}selected{% endif %}>Disabled</option>
+        <option value="true" {% if require_api_token %}selected{% endif %}>Enabled</option>
+      </select>
+    </label>
+    <input type="submit" id="save" value="Save API token requirement">
+  </form>
+  <br>
   {%endif%}
   <form id="dashboard-reports-form" action="/settings" method="POST">
     <input type="text" id="dashboard_reports_days" name="dashboard_reports_days"  {%if dashboard_reports_days!="" and dashboard_reports_days!=None %}value="{{dashboard_reports_days}}"{%else%} value="1"{%endif%} required size="3" maxlength="3" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');">
