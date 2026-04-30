@@ -258,6 +258,18 @@ class AnsibleDB():
             servers.update_one({"username":'admin'}, {"$set": { "keep_reports" : app.config['REPORTS_KEEP_DAYS'] } }, True)
             return app.config['REPORTS_KEEP_DAYS']
     @staticmethod
+    def get_require_api_token():
+        query_admin = {"username": 'admin'}
+        query_project = {"_id": 0, "require_api_token": 1}
+        try:
+            curs_admin = servers.find_one(query_admin, query_project)
+            if curs_admin is not None:
+                return bool(curs_admin.get('require_api_token', False))
+        except:
+            pass
+        return False
+
+    @staticmethod
     def auth_ldap_get_user_dn(username):
         user_dn = ""
         try:
