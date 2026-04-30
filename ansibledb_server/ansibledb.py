@@ -96,6 +96,7 @@ def settings():
         log_level = app.config['LOG_LEVEL']
         username = session['user']
         mfa_enabled = False
+        require_api_token = False
         if(request.method == 'POST'):
             save_facters_settings = request.form.get('save_facters_settings')
             token = request.form.get('token')
@@ -105,6 +106,7 @@ def settings():
             log_level = request.form.get('log_level')
             user_token_to_delete = request.form.get('user_token_to_delete')
             token_to_delete = request.form.get('token_to_delete')
+            require_api_token_form = request.form.get('require_api_token')
             # save inventory columns
             if save_facters_settings is not None:
                 facters = save_facters_settings.split(",")
@@ -137,6 +139,13 @@ def settings():
                     log_level = normalized_log_level
                 except Exception as e:
                     return render_template("error.html", msg = str(e))
+            # save require_api_token setting (admin only)
+            if username == 'admin' and require_api_token_form is not None:
+                try:
+                    require_api_token_bool = require_api_token_form.lower() in ('true', '1', 'on', 'yes')
+                    servers.update_one({"username": 'admin'}, {"$set": {"require_api_token": require_api_token_bool}}, True)
+                except Exception as e:
+                    return render_template("error.html", msg = str(e))
             # save Token
             if token is not None:
                 try:
@@ -166,9 +175,10 @@ def settings():
             result = ansibledb.get_tokens(query)
             rotate = ansibledb.get_report_rotate()
             token_expire_days = ansibledb.get_token_expire_days()
-            admin_settings = servers.find_one({"username": 'admin'}, {"_id": 0, "log_level": 1})
+            admin_settings = servers.find_one({"username": 'admin'}, {"_id": 0, "log_level": 1, "require_api_token": 1})
             if admin_settings is not None:
                 log_level = apply_log_level(app, admin_settings.get('log_level', app.config['LOG_LEVEL']))
+                require_api_token = bool(admin_settings.get('require_api_token', False))
         else:
             query = {"username": username}
             result = ansibledb.get_tokens(query)
@@ -180,7 +190,7 @@ def settings():
             mfa_enabled = bool(user_record.get("mfa_enabled", False))
 
         keys,facters_settings = ansibledb.manage_inventory_columns(username)
-        return render_template('settings.html', keys=keys, facters_settings=facters_settings,result=result,username=username,rotate=rotate,dashboard_reports_days=dashboard_reports,mfa_enabled=mfa_enabled,token_expire_days=token_expire_days,log_level=log_level,supported_log_levels=SUPPORTED_LOG_LEVELS)
+        return render_template('settings.html', keys=keys, facters_settings=facters_settings,result=result,username=username,rotate=rotate,dashboard_reports_days=dashboard_reports,mfa_enabled=mfa_enabled,token_expire_days=token_expire_days,log_level=log_level,supported_log_levels=SUPPORTED_LOG_LEVELS,require_api_token=require_api_token)
     else:
         msg = 'login with your AD account'
         return render_template("login.html",msg=msg)
@@ -425,6 +435,9 @@ def ansible_facts():
 
     result = jsonify({"message":"failed"})
     if request.method == 'POST':
+        if ansibledb.get_require_api_token() and not ansibledb.auth_token():
+            app.logger.warning('token is required for POST /api/ansible_facts from %s', request.remote_addr)
+            return jsonify({"message": "token is required"}), 401
         content = json.loads(request.data)
         if 'hostname' in content["ansible_facts"].keys():
             host =  content["ansible_facts"]["hostname"]
@@ -498,6 +511,9 @@ def dashboard():
 @app.route('/api/reports', methods=['POST', 'GET'])
 def ansible_reports():
     """ Add reports to AnsibleDB"""
+    if ansibledb.get_require_api_token() and not ansibledb.auth_token():
+        app.logger.warning('token is required for POST /api/reports from %s', request.remote_addr)
+        return jsonify({"message": "token is required"}), 401
     content = json.loads(request.data)
     
     if 'hostname' in content["ansible_reports"].keys():
