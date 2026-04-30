@@ -190,31 +190,41 @@ class AnsibleDB():
         return result
     @staticmethod
     def auth_token():
+        """
+        Returns a status string:
+          "ok"      – token present, found in DB, not expired
+          "expired" – token present, found in DB, but past expiry date
+          "invalid" – token present but not found in DB
+          "missing" – no token header supplied
+        """
         try:
             token = request.headers['token']
         except KeyError:
             token = None
-        
-        if token is not None:
-            try:
-                token_record = servers.find_one({"token": token}, {"_id": 0, "token_created_at_ts": 1})
-                if token_record is None:
-                    return False
-                token_expire_days = __class__.get_token_expire_days()
-                now_ts = int(datetime.utcnow().timestamp())
 
-                token_created_at_ts = token_record.get("token_created_at_ts")
-                # Backward compatibility for legacy tokens without timestamp.
-                if token_created_at_ts is None:
-                    servers.update_one({"token": token}, {"$set": {"token_created_at_ts": now_ts}})
-                    token_created_at_ts = now_ts
+        if token is None:
+            return "missing"
 
-                expires_at_ts = int(token_created_at_ts) + (int(token_expire_days) * 86400)
-                return now_ts <= expires_at_ts
-            except:
-                return False
-        else:
-            return False
+        try:
+            token_record = servers.find_one({"token": token}, {"_id": 0, "token_created_at_ts": 1})
+            if token_record is None:
+                return "invalid"
+
+            token_expire_days = __class__.get_token_expire_days()
+            now_ts = int(datetime.utcnow().timestamp())
+
+            token_created_at_ts = token_record.get("token_created_at_ts")
+            # Backward compatibility for legacy tokens without timestamp.
+            if token_created_at_ts is None:
+                servers.update_one({"token": token}, {"$set": {"token_created_at_ts": now_ts}})
+                token_created_at_ts = now_ts
+
+            expires_at_ts = int(token_created_at_ts) + (int(token_expire_days) * 86400)
+            if now_ts <= expires_at_ts:
+                return "ok"
+            return "expired"
+        except:
+            return "invalid"
 
     @staticmethod
     def get_token_expire_days():
