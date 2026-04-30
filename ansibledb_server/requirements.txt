@@ -5,3 +5,5 @@ gunicorn
 flask_swagger_ui
 flask_restx==1.1.0
 ldap3
+pyotp
+qrcode[pil]
