@@ -23,6 +23,20 @@ ansibledb = AnsibleDB()
 
 MFA_MAX_ATTEMPTS = 5
 
+
+def _token_error_response():
+    """ Return a 401 JSON response with a message based on the token status. """
+    status = ansibledb.auth_token()
+    if status == "expired":
+        app.logger.warning('Expired token used on %s %s from %s',
+                           request.method, request.path,
+                           request.headers.get('X-Forwarded-For', request.remote_addr))
+        return jsonify({"message": "token expired"}), 401
+    app.logger.warning('Missing/invalid token on %s %s from %s',
+                       request.method, request.path,
+                       request.headers.get('X-Forwarded-For', request.remote_addr))
+    return jsonify({"message": "token required"}), 401
+
 def generate_qr_code_base64(username, secret):
     """ Generate a TOTP QR code and return it as a base64-encoded PNG string. """
     totp = pyotp.TOTP(secret)
@@ -435,9 +449,8 @@ def ansible_facts():
 
     result = jsonify({"message":"failed"})
     if request.method == 'POST':
-        if ansibledb.get_require_api_token() and not ansibledb.auth_token():
-            app.logger.warning('token is required for POST /api/ansible_facts from %s', request.remote_addr)
-            return jsonify({"message": "token is required"}), 401
+        if ansibledb.get_require_api_token() and ansibledb.auth_token() != "ok":
+            return _token_error_response()
         content = json.loads(request.data)
         if 'hostname' in content["ansible_facts"].keys():
             host =  content["ansible_facts"]["hostname"]
@@ -511,9 +524,8 @@ def dashboard():
 @app.route('/api/reports', methods=['POST', 'GET'])
 def ansible_reports():
     """ Add reports to AnsibleDB"""
-    if ansibledb.get_require_api_token() and not ansibledb.auth_token():
-        app.logger.warning('token is required for POST /api/reports from %s', request.remote_addr)
-        return jsonify({"message": "token is required"}), 401
+    if ansibledb.get_require_api_token() and ansibledb.auth_token() != "ok":
+        return _token_error_response()
     content = json.loads(request.data)
     
     if 'hostname' in content["ansible_reports"].keys():
@@ -600,61 +612,64 @@ def ansible_reports_summary():
 
 @app.route('/api/servers', methods=['GET'])
 def ansibleservers():
-    """ Query facters and servers"""    
-    if ansibledb.auth_token():
-        hostname = request.args.get('host',None)
-        facts = request.args.get('fact',None)
+    """ Query facters and servers"""
+    token_status = ansibledb.auth_token()
+    if token_status != "ok":
+        return _token_error_response()
+    hostname = request.args.get('host',None)
+    facts = request.args.get('fact',None)
+    query = { "ansible_facts.hostname": {"$regex": '^.*'}}
+    cur,keys = ansibledb.get_keys(query,servers)
+    dict_keys = ansibledb.get_dict_keys(keys,cur)
+    if hostname is None and facts is None:
         query = { "ansible_facts.hostname": {"$regex": '^.*'}}
-        cur,keys = ansibledb.get_keys(query,servers)
-        dict_keys = ansibledb.get_dict_keys(keys,cur)
-        if hostname is None and facts is None:
-            query = { "ansible_facts.hostname": {"$regex": '^.*'}}
-            cursor = servers.find(query)
+        cursor = servers.find(query)
+        list_result = list(cursor)
+        result = json.dumps(list_result,default=str)
+    elif hostname is None and facts is not None:
+        fact=facts
+        query = { "ansible_facts.hostname": {"$regex": '^.*'}}
+        cursor = servers.find({}, {'_id': False})
+        list_result = ansibledb.get_facters(cursor,dict_keys,fact)
+        result = json.dumps(list_result,default=str)
+    elif  hostname is not None:
+        myquery = { "ansible_facts.hostname": hostname }
+        cursor = servers.find(myquery)
+        if facts is None:
             list_result = list(cursor)
             result = json.dumps(list_result,default=str)
-        elif hostname is None and facts is not None:
+        else:
             fact=facts
-            query = { "ansible_facts.hostname": {"$regex": '^.*'}}
-            cursor = servers.find({}, {'_id': False})
             list_result = ansibledb.get_facters(cursor,dict_keys,fact)
             result = json.dumps(list_result,default=str)
-        elif  hostname is not None:
-            myquery = { "ansible_facts.hostname": hostname }
-            cursor = servers.find(myquery)
-            if facts is None:
-                list_result = list(cursor)
-                result = json.dumps(list_result,default=str)
-            else:
-                fact=facts
-                list_result = ansibledb.get_facters(cursor,dict_keys,fact)
-                result = json.dumps(list_result,default=str)
-    else:
-        result = jsonify({"failed":"token required"})
     return result
 
 @app.route('/api/facters/<string:name>', methods=['GET'])
 def list_facters(name: str):
     """  Query Facters """
-    if ansibledb.auth_token():
-      fact=name
-      query = { "ansible_facts.hostname": {"$regex": '^.*'}}
-      cur,keys = ansibledb.get_keys(query,servers)
-      dict_keys = ansibledb.get_dict_keys(keys,cur)
-      cursor = servers.find({}, {'_id': False})
-      list_result = ansibledb.get_facters(cursor,dict_keys,fact)
-      result = json.dumps(list_result,default=str)
-    else:
-      result = jsonify({"failed":"token required"})
+    token_status = ansibledb.auth_token()
+    if token_status != "ok":
+        return _token_error_response()
+    fact=name
+    query = { "ansible_facts.hostname": {"$regex": '^.*'}}
+    cur,keys = ansibledb.get_keys(query,servers)
+    dict_keys = ansibledb.get_dict_keys(keys,cur)
+    cursor = servers.find({}, {'_id': False})
+    list_result = ansibledb.get_facters(cursor,dict_keys,fact)
+    result = json.dumps(list_result,default=str)
     return result
 
 @app.route('/api/servers/<string:name>/delete', methods=['GET','POST','DELETE'])
 def delete_server(name: str):
     """ Delete nodes from AnsibleDB API"""
-    if ansibledb.auth_token() and request.method == 'DELETE':
+    token_status = ansibledb.auth_token()
+    if token_status != "ok":
+        return _token_error_response()
+    if request.method == 'DELETE':
         host=name
         result = ansibledb.delete_host(host)
     else:
-      result = jsonify({"message":"failed"})
+        result = jsonify({"message":"failed"})
     return result
 
 @app.route('/api/facters', methods=['GET'])
