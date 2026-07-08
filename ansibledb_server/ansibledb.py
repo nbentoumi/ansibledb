@@ -337,7 +337,6 @@ def login():
                 return redirect('/mfa_verify')
             session['user'] = username
             session['auth'] = True
-            session.permanent = True  # Make session persistent for the configured lifetime
             return redirect('/')
 
         return render_template("login.html",msg=msg)
@@ -369,7 +368,6 @@ def mfa_verify():
                 session.pop('mfa_attempts', None)
                 session['user'] = username
                 session['auth'] = True
-                session.permanent = True  # Make session persistent for the configured lifetime
                 return redirect('/')
             else:
                 session['mfa_attempts'] = attempts + 1
