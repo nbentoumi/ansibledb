@@ -197,13 +197,9 @@ class AnsibleDB():
           "invalid" – token present but not found in DB
           "missing" – no token header supplied
         """
-        try:
-            token = request.headers['token']
-        except KeyError:
-            token = None
-
-        if token is None:
-            return "missing"
+        token = request.headers.get('token')
+        if not token:
+            return 'Authorization required', 401
 
         try:
             token_record = servers.find_one({"token": token}, {"_id": 0, "token_created_at_ts": 1})
