@@ -1,4 +1,4 @@
-FROM python:3.8-alpine
+FROM python:3.12-alpine
 
 # Fix CVEs by updating all packages in a single layer
 RUN apk update && \
