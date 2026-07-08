@@ -62,6 +62,7 @@ def index():
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /inventory')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
 
@@ -88,6 +89,7 @@ def server_details():
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /server_facters')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
 
@@ -130,12 +132,14 @@ def settings():
                 try:
                     servers.update_one({"username":username}, {"$set": { "dashboard_reports_days" : int(dashboard_reports) } }, True)
                 except Exception as e:
+                    app.logger.exception('Failed to update dashboard_reports_days for user %s', username)
                     return render_template("error.html", msg = str(e)) 
             # save rotate reports
             if rotate_reports is not None:
                 try:
                     servers.update_one({"username":'admin'}, {"$set": { "keep_reports" : int(rotate_reports) } }, True)
                 except Exception as e:
+                    app.logger.exception('Failed to update keep_reports setting')
                     return render_template("error.html", msg = str(e)) 
             # save token expiration period (admin only)
             if token_expire_days is not None and username == 'admin':
@@ -145,6 +149,7 @@ def settings():
                         raise ValueError("Token expiration period must be at least 1 day")
                     servers.update_one({"username": 'admin'}, {"$set": {"token_expire_days": token_expire_days_int}}, True)
                 except Exception as e:
+                    app.logger.exception('Failed to update token_expire_days setting')
                     return render_template("error.html", msg = str(e))
             if log_level is not None and username == 'admin':
                 try:
@@ -152,6 +157,7 @@ def settings():
                     servers.update_one({"username": 'admin'}, {"$set": {"log_level": normalized_log_level}}, True)
                     log_level = normalized_log_level
                 except Exception as e:
+                    app.logger.exception('Failed to update log_level setting')
                     return render_template("error.html", msg = str(e))
             # save require_api_token setting (admin only)
             if username == 'admin' and require_api_token_form is not None:
@@ -159,6 +165,7 @@ def settings():
                     require_api_token_bool = require_api_token_form.lower() in ('true', '1', 'on', 'yes')
                     servers.update_one({"username": 'admin'}, {"$set": {"require_api_token": require_api_token_bool}}, True)
                 except Exception as e:
+                    app.logger.exception('Failed to update require_api_token setting')
                     return render_template("error.html", msg = str(e))
             # save Token
             if token is not None:
@@ -169,17 +176,20 @@ def settings():
                         True
                     )
                 except Exception as e:
+                    app.logger.exception('Failed to upsert token for user %s', username)
                     return render_template("error.html", msg = str(e)) 
             # delete token
             if user_token_to_delete is not None and token_to_delete is not None:
                 try:
                     servers.delete_one({"username":user_token_to_delete,"token":token_to_delete})
                 except Exception as e:
+                    app.logger.exception('Failed to delete token for user %s', user_token_to_delete)
                     return render_template("error.html", msg = str(e))
 
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /settings')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
         
@@ -231,11 +241,13 @@ def token():
                         True
                     )
                 except Exception as e:
+                    app.logger.exception('Failed to upsert token for user %s', username)
                     return render_template("error.html", msg = str(e))
             if user_token_to_delete is not None and token_to_delete is not None:
                 try:
                     servers.delete_one({"username":user_token_to_delete,"token":token_to_delete})
                 except Exception as e:
+                    app.logger.exception('Failed to delete token for user %s', user_token_to_delete)
                     return render_template("error.html", msg = str(e))
         if session['user'] == 'admin':
             query = {"username": {"$regex": '^.*'}}
@@ -260,6 +272,7 @@ def facters():
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /facters')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
 
@@ -324,6 +337,7 @@ def login():
                 return redirect('/mfa_verify')
             session['user'] = username
             session['auth'] = True
+            session.permanent = True  # Make session persistent for the configured lifetime
             return redirect('/')
 
         return render_template("login.html",msg=msg)
@@ -355,6 +369,7 @@ def mfa_verify():
                 session.pop('mfa_attempts', None)
                 session['user'] = username
                 session['auth'] = True
+                session.permanent = True  # Make session persistent for the configured lifetime
                 return redirect('/')
             else:
                 session['mfa_attempts'] = attempts + 1
@@ -459,6 +474,7 @@ def ansible_facts():
                 result = jsonify({"message":"ok"})
 
             except:
+                app.logger.exception('Failed to update ansible_facts for host %s', host)
                 result = jsonify({"message":"failed"})
     return result
 
@@ -499,6 +515,7 @@ def dashboard():
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
 
@@ -539,6 +556,7 @@ def ansible_reports():
             report_search = (datetime.now() - timedelta(days=rotate)).strftime("%Y-%m-%d %H:00:00+00:00")
             result_rotate = ansibledb.rotate_report(report_search)
         except:
+            app.logger.exception('Failed to upsert report for hostname %s at %s', hostname, report_time)
             result = jsonify({"message":"update failed"})
     elif 'summary' in content["ansible_reports"].keys():
         report_time =  content["ansible_reports"]["reported_at"]
@@ -548,6 +566,7 @@ def ansible_reports():
             count_summary = count_summary + 1
             result = jsonify({"message":"ok"})
         except:
+            app.logger.exception('Failed to update report summary at %s', report_time)
             result = jsonify({"message":"update failed"})
     
             
@@ -569,6 +588,7 @@ def report_details():
         try:
             info = client.server_info()
         except:
+            app.logger.exception('Database connectivity check failed on /node_report')
             msg="Unable to connect to Database"
             return render_template("login.html",msg=msg)
 
@@ -582,6 +602,7 @@ def report_details():
             result = list_result[0][hostname]['ansible_reports']['logs']
             status = list_result[0][hostname]['ansible_reports']['status']
         except Exception as e:
+            app.logger.exception('Failed to query node report for host %s at %s', hostname, report_time)
             return render_template("error.html", msg = str(e)) 
 
         res = []
@@ -607,6 +628,7 @@ def ansible_reports_summary():
     try:
         servers.update_one({"ansible_reports_summary.report_time":report_time}, {"$set": {"summary":summary }}, True)
     except:
+        app.logger.exception('Failed to update reports summary at %s', report_time)
         content = jsonify({"message":"update failed"})
     return '200'
 
@@ -659,17 +681,14 @@ def list_facters(name: str):
     result = json.dumps(list_result,default=str)
     return result
 
-@app.route('/api/servers/<string:name>/delete', methods=['GET','POST','DELETE'])
+@app.route('/api/servers/<string:name>/delete', methods=['DELETE'])
 def delete_server(name: str):
     """ Delete nodes from AnsibleDB API"""
     token_status = ansibledb.auth_token()
     if token_status != "ok":
         return _token_error_response()
-    if request.method == 'DELETE':
-        host=name
-        result = ansibledb.delete_host(host)
-    else:
-        result = jsonify({"message":"failed"})
+    host = name
+    result = ansibledb.delete_host(host)
     return result
 
 @app.route('/api/facters', methods=['GET'])
