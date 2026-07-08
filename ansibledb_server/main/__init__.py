@@ -8,10 +8,20 @@ import os
 import json
 import ssl
 import time
+import secrets
 
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'secret'
+
+# Load Flask secret key from environment; generate a secure ephemeral key if missing
+_flask_secret_key = os.environ.get('FLASK_SECRET_KEY')
+_generated_flask_secret_key = False
+if not _flask_secret_key:
+    _flask_secret_key = secrets.token_hex(32)
+    _generated_flask_secret_key = True
+app.secret_key = _flask_secret_key
 
 SUPPORTED_LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
 
@@ -62,6 +72,12 @@ def configure_logging(flask_app):
 
 configure_logging(app)
 
+if _generated_flask_secret_key:
+    app.logger.warning(
+        'FLASK_SECRET_KEY was not set; generated an ephemeral secret key for this process. '
+        'Set FLASK_SECRET_KEY for stable sessions across restarts.'
+    )
+
 
 @app.before_request
 def log_request_start():
@@ -91,7 +107,7 @@ def log_request_exception(error):
         app.logger.exception('Unhandled exception during %s %s', request.method, request.path)
 
 SWAGGER_URL = '/api/docs'  # URL for exposing Swagger UI (without trailing '/')
-API_URL = "/static/swagger.json"  # Our API url (can of course be a local resource)
+API_URL = "/static/swagger.yaml"  # Our API url (can of course be a local resource)
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,  # Swagger UI static files will be mapped to '{SWAGGER_URL}/dist/'
     API_URL,
@@ -102,9 +118,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 
 api = Api(swaggerui_blueprint)
 app.register_blueprint(swaggerui_blueprint)
-
-
-load_dotenv()
 
 MONGO_HOST = os.environ.get("MONGO_HOST")
 MONGO_USER = os.environ.get("MONGO_USERNAME")
@@ -129,8 +142,10 @@ app.config['TOKEN_EXPIRE_DAYS'] = int(os.environ.get("TOKEN_EXPIRE_DAYS", 30))
 app.config['LOG_LEVEL'] = normalize_log_level(os.environ.get("LOG_LEVEL", "INFO"))
 
 uri = "mongodb://{}:{}@{}:{}/?authSource=admin".format(MONGO_USER, MONGO_PASS, MONGO_HOST, MONGO_PORT)
+client = None
+servers = None
 try:
-    client = MongoClient(uri,serverSelectionTimeoutMS=10, connectTimeoutMS=20000)
+    client = MongoClient(uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=20000)
     db = client[MONGO_DB]
     servers = db.servers
     # create index
@@ -145,8 +160,13 @@ try:
     if admin_settings is not None:
         apply_log_level(app, admin_settings.get('log_level', app.config['LOG_LEVEL']))
 
-except:
-    msg="Unable to connect to Database"
-    
+except Exception as e:
+    msg = "Unable to connect to Database"
+    app.logger.exception("Failed to initialize MongoDB connection: %s", msg)
+    app.logger.critical(
+        "MongoDB connection failed during app initialization. "
+        "Please verify MONGO_HOST, MONGO_PORT, MONGO_USERNAME, MONGO_PASSWORD, "
+        "and MONGO_DATABASE environment variables are set correctly."
+    )
 
 
