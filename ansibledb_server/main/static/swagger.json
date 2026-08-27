@@ -3,6 +3,12 @@ securityDefinitions:
      type: apiKey
      in: header
      name: token
+     description: |
+       API token issued from the AnsibleDB Settings page.
+       Tokens expire after the configured number of days (default 30).
+       Possible 401 responses:
+         - {"message": "token required"} – header missing or token not found
+         - {"message": "token expired"}  – token found but past its expiry date
 definitions:
   Get Hosts and Facters:
     properties:
@@ -21,6 +27,30 @@ definitions:
       hostname:
         type: string
     type: object
+  AnsibleFacts:
+    properties:
+      ansible_facts:
+        type: object
+        description: Full Ansible facts dictionary (must contain a "hostname" key)
+    type: object
+  AnsibleReport:
+    properties:
+      ansible_reports:
+        type: object
+        description: Ansible report object (must contain "hostname" and "report_time" keys)
+    type: object
+  ErrorResponse:
+    properties:
+      message:
+        type: string
+        example: token required
+    type: object
+  OkResponse:
+    properties:
+      message:
+        type: string
+        example: ok
+    type: object
 info:
   contact:
     email: nasredine.bentoumi@gmail.com
@@ -35,6 +65,64 @@ info:
 security:
   - APIKeyHeader: []
 paths:
+  /api/ansible_facts:
+    post:
+      summary: Push Ansible facts for a host
+      description: Stores or updates Ansible facts for a host. Requires a valid token when the admin has enabled the "require API token" setting.
+      operationId: post_ansible_facts
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/AnsibleFacts'
+      security:
+        - APIKeyHeader: []
+      responses:
+        200:
+          description: Facts stored successfully
+          schema:
+            $ref: '#/definitions/OkResponse'
+        401:
+          description: Authentication required or token expired
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+          examples:
+            application/json:
+              message: token expired
+  /api/reports:
+    post:
+      summary: Push an Ansible playbook report
+      description: Stores or updates an Ansible run report. Requires a valid token when the admin has enabled the "require API token" setting.
+      operationId: post_ansible_reports
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/AnsibleReport'
+      security:
+        - APIKeyHeader: []
+      responses:
+        200:
+          description: Report stored successfully
+          schema:
+            $ref: '#/definitions/OkResponse'
+        401:
+          description: Authentication required or token expired
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+          examples:
+            application/json:
+              message: token expired
   /api/servers:
     get:
       consumes:
@@ -51,7 +139,18 @@ paths:
         name: fact
         required: false
         type: string
-      responses: {}
+      security:
+        - APIKeyHeader: []
+      responses:
+        200:
+          description: List of servers / facter values
+        401:
+          description: Authentication required or token expired
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+          examples:
+            application/json:
+              message: token expired
       summary: Get Servers and Facters
   /api/facters/{fact}:
     get:
@@ -64,7 +163,18 @@ paths:
         name: fact
         required: true
         type: string
-      responses: {}
+      security:
+        - APIKeyHeader: []
+      responses:
+        200:
+          description: List of facter values per host
+        401:
+          description: Authentication required or token expired
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+          examples:
+            application/json:
+              message: token expired
       summary: Get Facters
   /api/servers/{host}/delete:
     delete:
@@ -77,6 +187,19 @@ paths:
         name: host
         required: true
         type: string
-      responses: {}
-      summary: Get status
+      security:
+        - APIKeyHeader: []
+      responses:
+        200:
+          description: Host deleted
+          schema:
+            $ref: '#/definitions/OkResponse'
+        401:
+          description: Authentication required or token expired
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+          examples:
+            application/json:
+              message: token expired
+      summary: Delete a host
 swagger: "2.0"

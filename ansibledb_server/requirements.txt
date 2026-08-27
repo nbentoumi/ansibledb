@@ -1,7 +1,10 @@
-pymongo
+pymongo==4.10.1
 Flask==2.3.3
-python-dotenv
-gunicorn
-flask_swagger_ui
-flask_restx==1.1.0
-ldap3
+python-dotenv==1.0.1
+gunicorn==23.0.0
+flask-swagger-ui==5.32.6
+flask-restx==1.1.0
+Werkzeug==2.3.8
+ldap3==2.9.1
+pyotp==2.9.0
+qrcode[pil]==7.4.2

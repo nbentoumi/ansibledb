@@ -106,12 +106,49 @@ function display_selected(){
     <input type="submit" id="save" value="Save days to keep reports">
   </form>
   <br>
+  <form id="token-expire-form" action="/settings" method="POST">
+    <input type="text" id="token_expire_days" name="token_expire_days" {%if token_expire_days!="" and token_expire_days!=None %}value="{{token_expire_days}}"{%else%} value="30"{%endif%} required size="3" maxlength="3" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0+/, '');">
+    <input type="submit" id="save" value="Save token expiration days">
+  </form>
+  <br>
+  <form id="log-level-form" action="/settings" method="POST">
+    <select id="log_level" name="log_level" required>
+      {% for level in supported_log_levels %}
+      <option value="{{level}}" {% if log_level == level %}selected{% endif %}>{{level}}</option>
+      {% endfor %}
+    </select>
+    <input type="submit" id="save" value="Save log level">
+  </form>
+  <br>
+  <form id="require-api-token-form" action="/settings" method="POST">
+    <label>Require token for API POST (ansible_facts &amp; reports):&nbsp;
+      <select id="require_api_token" name="require_api_token" required>
+        <option value="false" {% if not require_api_token %}selected{% endif %}>Disabled</option>
+        <option value="true" {% if require_api_token %}selected{% endif %}>Enabled</option>
+      </select>
+    </label>
+    <input type="submit" id="save" value="Save API token requirement">
+  </form>
+  <br>
   {%endif%}
   <form id="dashboard-reports-form" action="/settings" method="POST">
     <input type="text" id="dashboard_reports_days" name="dashboard_reports_days"  {%if dashboard_reports_days!="" and dashboard_reports_days!=None %}value="{{dashboard_reports_days}}"{%else%} value="1"{%endif%} required size="3" maxlength="3" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');">
     <input type="submit" id="save" value="Save dashboard report days">
   </form>
 </div>
+</div>
+
+<div id="top_div">
+  <h2>&#187; Multi-Factor Authentication</h2>
+  <div class="ui-widget" style="text-align:center;">
+    {% if mfa_enabled %}
+    <p>MFA status: <strong style="color:#1f7a1f;">Enabled</strong></p>
+    <p><a href="/mfa_setup" style="background-color:#3ca9e2; color:#fff; text-decoration:none; padding:8px 16px; border-radius:4px; font-size:14px;">Manage MFA Settings</a></p>
+    {% else %}
+    <p>MFA status: <strong style="color:#8b1a1a;">Disabled (default)</strong></p>
+    <p><a href="/mfa_setup" style="background-color:#3ca9e2; color:#fff; text-decoration:none; padding:8px 16px; border-radius:4px; font-size:14px;">Enable MFA</a></p>
+    {% endif %}
+  </div>
 </div>
 
 <div id="top_div">
@@ -136,6 +173,7 @@ function display_selected(){
       <tr>
         <th>username</th>
         <th>token</th>
+        <th>expires at (UTC)</th>
         {% if username == 'admin'%}
         <th>delete</th>
         {% endif %}
@@ -147,6 +185,7 @@ function display_selected(){
       <tr>
         <td>{{token['username']}}</td>
         <td>{{token['token']}}</td>
+        <td>{{token['token_expires_at']}}</td>
         {% if username == 'admin'%}
         <td>
           <form name="delete_token" id="delete_token" action="/settings" method="POST"> 
@@ -187,6 +226,7 @@ function display_selected(){
       columnVisibility = {
           "username": true,
           "token": true,
+          "expires_at": true,
           {% if username == 'admin'%}
           "delete": true,
           {% endif%}
@@ -213,9 +253,14 @@ function display_selected(){
             "visible": true,
             "sType": "string"
           },
-          {% if username == 'admin'%}
           {
             "targets": [2],
+            "visible": true,
+            "sType": "string"
+          },
+          {% if username == 'admin'%}
+          {
+            "targets": [3],
             "visible": true,
             "sType": "string"
           },

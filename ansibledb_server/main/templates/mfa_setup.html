@@ -1,0 +1,84 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>AnsibleDB - MFA Setup</title>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}"></script>
+  </head>
+  <body>
+  <header>
+    <h1>AnsibleDB - Multi-Factor Authentication</h1>
+    <span id="top"><a href="#">Back to top</a></span>
+    <span id="menu_button"><a href="/logout" title="logout">Logout</a></span>
+    <span id="menu_button"><a href="/settings" title="settings">Settings</a></span>
+    <span id="menu_button"><a href="/facters" title="facters">Facters</a></span>
+    <span id="menu_button"><a href="/inventory" title="inventory">Inventory</a></span>
+    <span id="menu_button"><a href="/" title="dashboard">Dashboard</a></span>
+  </header>
+
+  <div id="top_div">
+    <h2>&#187; Multi-Factor Authentication (MFA)</h2>
+
+    {% if msg %}
+    <div style="text-align:center; padding:10px; margin:10px auto; max-width:500px; 
+                {% if 'successfully' in msg or 'disabled' in msg %}
+                  background-color:#d4edda; color:#155724; border:1px solid #c3e6cb;
+                {% elif 'already' in msg %}
+                  background-color:#d1ecf1; color:#0c5460; border:1px solid #bee5eb;
+                {% else %}
+                  background-color:#f8d7da; color:#721c24; border:1px solid #f5c6cb;
+                {% endif %}
+                border-radius:4px;">
+      {{ msg }}
+    </div>
+    {% endif %}
+
+    {% if mfa_enabled %}
+    <div style="text-align:center; max-width:500px; margin:20px auto;">
+      <p style="color:green; font-size:18px;">&#10003; MFA is currently <strong>enabled</strong> for your account.</p>
+      <hr>
+      <h3>Disable MFA</h3>
+      <p>Enter a code from your authenticator app to disable MFA:</p>
+      <form action="/mfa_disable" method="POST" style="display:inline-block;">
+        <input type="text" name="otp_code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required 
+               style="width:200px; text-align:center; letter-spacing:8px; font-size:18px; padding:5px; border:1px solid #c2c0ca; border-radius:4px;">
+        <br><br>
+        <input type="submit" value="Disable MFA" style="background-color:#dc3545; color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:14px;">
+      </form>
+    </div>
+
+    {% elif qr_code_data %}
+    <div style="text-align:center; max-width:500px; margin:20px auto;">
+      <p>Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):</p>
+      <div style="margin:20px auto;">
+        <img src="data:image/png;base64,{{ qr_code_data }}" alt="MFA QR Code" style="border:5px solid #fff; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+      </div>
+      <p style="font-size:12px; color:#666;">Or enter this secret manually: <code style="background:#eee; padding:2px 8px; border-radius:3px; letter-spacing:2px;">{{ secret }}</code></p>
+      <hr>
+      <p>Enter the 6-digit code from your authenticator app to complete setup:</p>
+      <form action="/mfa_setup" method="POST" style="display:inline-block;">
+        <input type="hidden" name="action" value="verify">
+        <input type="text" name="otp_code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus
+               style="width:200px; text-align:center; letter-spacing:8px; font-size:18px; padding:5px; border:1px solid #c2c0ca; border-radius:4px;">
+        <br><br>
+        <input type="submit" value="Verify & Enable MFA" style="background-color:#3ca9e2; color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:14px;">
+      </form>
+    </div>
+
+    {% else %}
+    <div style="text-align:center; max-width:500px; margin:20px auto;">
+      <p>MFA is currently <strong>not enabled</strong> for your account.</p>
+      <p>Enable MFA to add an extra layer of security. You will need an authenticator app such as Google Authenticator, Authy, or Microsoft Authenticator.</p>
+      <form action="/mfa_setup" method="POST">
+        <input type="hidden" name="action" value="generate">
+        <input type="submit" value="Setup MFA" style="background-color:#3ca9e2; color:#fff; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:16px;">
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    <p>Nasredine Bentoumi - 2023</p>
+  </footer>
+  </body>
+</html>

@@ -22,6 +22,7 @@ services:
       MONGO_PORT: 27017
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin
+      FLASK_SECRET_KEY: secret
       # Uncomment variables below with appropriate values to enable LDAP
       #LDAP_SERVER: "ldaps://ldap_server:636"
       #LDAP_BASE_DN: "DC=company,DC=com"

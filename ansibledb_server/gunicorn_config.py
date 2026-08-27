@@ -1,3 +1,5 @@
+import os
+
 # The IP address (typically localhost) and port that the ansibledb process should listen on
 bind = '0.0.0.0:8080'
 
@@ -14,3 +16,9 @@ timeout = 120
 # The maximum number of requests a worker can handle before being respawned
 max_requests = 5000
 max_requests_jitter = 500
+
+# Send Gunicorn access and error logs to the container/runtime log stream.
+accesslog = '-'
+errorlog = '-'
+loglevel = os.environ.get('LOG_LEVEL', 'info').lower()
+capture_output = True
